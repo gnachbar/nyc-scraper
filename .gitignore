@@ -176,6 +176,8 @@ raw_data/
 processed_data/
 cache/
 screenshots/
+temp_*.json
+.~lock.*.csv#
 
 # Test outputs
 test-output/
