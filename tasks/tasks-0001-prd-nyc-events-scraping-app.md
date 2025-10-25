@@ -38,8 +38,8 @@
   - [x] 3.2 Create simple Browserbase client wrapper
   - [x] 3.3 Test basic browser session creation
 - [ ] 4.0 Simple Scrapers (3 scrapers)
-  - [ ] 4.1 Create Kings Theatre scraper (https://www.kingstheatre.com/)
-  - [ ] 4.2 Create Prospect Park events scraper (https://www.prospectpark.org/events/)
+  - [x] 4.1 Create Kings Theatre scraper (https://www.kingstheatre.com/)
+  - [x] 4.2 Create Prospect Park events scraper (https://www.prospectpark.org/events/)
   - [ ] 4.3 Create Brooklyn Paper events scraper (https://events.brooklynpaper.com/)
   - [ ] 4.4 Test each scraper individually
 - [ ] 5.0 Data Processing
