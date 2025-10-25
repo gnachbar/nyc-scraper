@@ -145,6 +145,64 @@ def test_cross_scraper_consistency():
     return results
 
 
+def test_hardcoded_location(source: str) -> tuple[bool, str]:
+    """Test that single-venue scrapers hardcode location in instruction and schema."""
+    content = read_scraper_file(source)
+    instruction = extract_instruction(content).lower()
+    
+    # Single-venue scrapers should hardcode location
+    single_venue_scrapers = {
+        'kings_theatre': {
+            'venue_name': 'kings theatre',
+            'should_hardcode': True
+        },
+        'msg_calendar': {
+            'venue_name': 'madison square garden',
+            'should_hardcode': True
+        },
+        'prospect_park': {
+            'venue_name': None,
+            'should_hardcode': False  # This one extracts actual subvenues
+        }
+    }
+    
+    if source not in single_venue_scrapers:
+        return True, "Unknown scraper"
+    
+    config = single_venue_scrapers[source]
+    
+    if config['should_hardcode']:
+        # Check if instruction tells Stagehand to hardcode the venue name
+        venue_name = config['venue_name']
+        hardcode_keywords = ['set', 'hardcode', 'all events', 'for all']
+        
+        has_venue_name = venue_name in instruction
+        has_hardcode_language = any(keyword in instruction for keyword in hardcode_keywords)
+        
+        # Also check for eventLocation mentioned with venue name nearby
+        # This catches patterns like "set eventLocation to 'Madison Square Garden'"
+        has_explicit_hardcode = False
+        if 'eventlocation' in instruction:
+            # Check if venue name appears near eventLocation mention
+            instruction_words = instruction.split()
+            for i, word in enumerate(instruction_words):
+                if 'eventlocation' in word:
+                    # Check surrounding words for venue name
+                    context = ' '.join(instruction_words[max(0, i-3):i+4])
+                    if venue_name in context:
+                        has_explicit_hardcode = True
+                        break
+        
+        is_hardcoded = has_venue_name and (has_hardcode_language or has_explicit_hardcode)
+        
+        details = f"venue_name={has_venue_name}, hardcode_language={has_hardcode_language}, explicit={has_explicit_hardcode}"
+        return is_hardcoded, details
+    else:
+        # Multi-venue scraper should NOT hardcode
+        should_not_hardcode = 'extract' in instruction or 'location' in instruction
+        return should_not_hardcode, "Multi-venue scraper should extract locations"
+
+
 def run_all_tests():
     """Run all consistency tests for all scrapers."""
     sources = ['kings_theatre', 'msg_calendar', 'prospect_park']
@@ -190,6 +248,14 @@ def run_all_tests():
             print("  ✓ Instruction mentions all required fields")
         else:
             print(f"  ✗ Instruction missing fields: {', '.join(missing_fields)}")
+            all_passed = False
+        
+        # Test 5: Hardcoded location
+        hardcode_ok, details = test_hardcoded_location(source)
+        if hardcode_ok:
+            print("  ✓ Location hardcoding/ex extraction handled correctly")
+        else:
+            print(f"  ✗ Location hardcoding incorrect: {details}")
             all_passed = False
         
         # Show instruction snippet
