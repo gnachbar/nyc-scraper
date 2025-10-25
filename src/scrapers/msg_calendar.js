@@ -7,7 +7,6 @@ const StandardEventSchema = z.object({
     eventName: z.string(),
     eventDate: z.string(),
     eventTime: z.string().default(""), // Required field, empty string if not found
-    eventLocation: z.string(), // Hardcoded venue name
     eventUrl: z.string().url()
   }))
 });
