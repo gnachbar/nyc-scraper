@@ -132,7 +132,7 @@ export async function scrapeMSGCalendar() {
       
       try {
         // Import to database using existing import script
-        execSync(`python3 scripts/import_scraped_data.py --source msg_calendar --file ${tempFile}`, { stdio: 'inherit' });
+        execSync(`python3 src/import_scraped_data.py --source msg_calendar --file ${tempFile}`, { stdio: 'inherit' });
         console.log(`Successfully imported ${eventsWithLocation.length} events to database`);
       } catch (importError) {
         console.error("Database import failed:", importError);
