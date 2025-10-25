@@ -139,8 +139,8 @@ def standardize_title(title: str) -> str:
     # Clean up the title
     title = title.strip()
     
-    # Handle common abbreviations and special cases
-    special_cases = {
+    # Abbreviations that should be uppercase
+    uppercase_abbrevs = {
         'nyc': 'NYC',
         'ny': 'NY',
         'usa': 'USA',
@@ -178,9 +178,7 @@ def standardize_title(title: str) -> str:
         'q&a': 'Q&A',
         'faq': 'FAQ',
         'etc': 'ETC',
-        'vs': 'VS',
         'ft': 'FT',
-        'st': 'ST',
         'nd': 'ND',
         'rd': 'RD',
         'th': 'TH',
@@ -197,18 +195,54 @@ def standardize_title(title: str) -> str:
         'x': 'X'
     }
     
-    # Convert to title case
-    title = title.title()
+    # Words that should always be lowercase (except at start of title)
+    lowercase_words = {'vs', 'vs.', 'versus', 'of', 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'with', 'by', 'from'}
     
     # Apply special cases
     words = title.split()
-    for i, word in enumerate(words):
-        # Remove punctuation for lookup
-        clean_word = re.sub(r'[^\w]', '', word.lower())
-        if clean_word in special_cases:
-            words[i] = special_cases[clean_word]
+    result_words = []
     
-    return ' '.join(words)
+    for i, word in enumerate(words):
+        # Handle apostrophes - lowercase the letter after apostrophe
+        # Detect and handle both straight apostrophe (') and Unicode right single quotation mark (')
+        apostrophe_char = None
+        for char in ["'", "'", '"', '"']:
+            if char in word:
+                apostrophe_char = char
+                break
+        
+        if apostrophe_char:
+            parts = word.split(apostrophe_char)
+            if len(parts) == 2:
+                # e.g., "John'S" -> "John's"
+                parts[1] = parts[1].lower()
+                word = apostrophe_char.join(parts)
+        
+        # Check if word should be uppercase abbrev
+        clean_word = re.sub(r'[^\w]', '', word.lower())
+        if clean_word in uppercase_abbrevs:
+            word = uppercase_abbrevs[clean_word]
+        elif clean_word in lowercase_words and i > 0:  # Keep lowercase unless first word
+            word = word.lower()
+        else:
+            # Apply title case
+            word = word.title()
+            # Fix apostrophes again after title case (handle Unicode apostrophes)
+            apostrophe_char = None
+            for char in ["'", "'", '"', '"']:
+                if char in word:
+                    apostrophe_char = char
+                    break
+            
+            if apostrophe_char:
+                parts = word.split(apostrophe_char)
+                if len(parts) == 2:
+                    parts[1] = parts[1].lower()
+                    word = apostrophe_char.join(parts)
+        
+        result_words.append(word)
+    
+    return ' '.join(result_words)
 
 
 def standardize_venue(venue: str) -> str:
@@ -607,6 +641,13 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
             logger.warning(f"Skipping event {raw_event.id}: missing required fields")
             return None
         
+        # Set display_venue based on source
+        venue_name = standardize_venue(raw_event.venue)
+        if raw_event.source == 'prospect_park':
+            display_venue = "Prospect Park"
+        else:
+            display_venue = venue_name
+        
         # Create clean event (WRITE ONLY to clean_events table)
         clean_event = CleanEvent(
             title=standardize_title(raw_event.title),
@@ -614,7 +655,8 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
             start_time=standardize_datetime(raw_event.start_time),
             end_time=standardize_datetime(raw_event.end_time),
             location=raw_event.location,
-            venue=standardize_venue(raw_event.venue),
+            venue=venue_name,  # Detailed venue preserved
+            display_venue=display_venue,  # Simplified venue for UI
             price_range=raw_event.price_info,
             category=raw_event.category,
             url=raw_event.url,

@@ -9,6 +9,7 @@ tracking each import with a ScrapeRun record.
 import json
 import argparse
 import sys
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List
@@ -71,6 +72,16 @@ def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optio
         # Add time if provided
         if time_str:
             try:
+                # Clean up complex time strings (e.g., "8:00 PM | Doors open 7:00 PM")
+                clean_time_str = time_str.strip()
+                if ' | ' in clean_time_str:
+                    # Extract just the main event time before the pipe
+                    clean_time_str = clean_time_str.split(' | ')[0].strip()
+                
+                # Remove timezone suffix (e.g., "ET", "PT", "EST")
+                clean_time_str = re.sub(r'\s+(ET|PT|EST|PST|CST|MST)$', '', clean_time_str, flags=re.IGNORECASE)
+                clean_time_str = clean_time_str.strip()  # Remove any extra whitespace
+                
                 # Common time formats
                 time_formats = [
                     '%I:%M%p',         # 7:00PM (no space)
@@ -81,12 +92,12 @@ def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optio
                 
                 for fmt in time_formats:
                     try:
-                        if ' - ' in time_str:
+                        if ' - ' in clean_time_str:
                             # Handle time ranges - take the start time
-                            start_time_str = time_str.split(' - ')[0].strip()
+                            start_time_str = clean_time_str.split(' - ')[0].strip()
                             time_obj = datetime.strptime(start_time_str, fmt.replace(' - %I:%M %p', ''))
                         else:
-                            time_obj = datetime.strptime(time_str.strip(), fmt)
+                            time_obj = datetime.strptime(clean_time_str, fmt)
                         
                         parsed_date = parsed_date.replace(
                             hour=time_obj.hour,
@@ -207,6 +218,10 @@ def import_events(session, source: str, file_path: str, scrape_run_id: int) -> i
                 event_time = event_data.get('eventTime', '')
                 venue = event_data.get('eventLocation', '')
                 url = event_data.get('eventUrl', '')
+                
+                # Convert empty string to None for event_time (NULL in database)
+                if event_time == '':
+                    event_time = None
                 
                 # Parse datetime
                 start_time = parse_event_datetime(event_date, event_time)

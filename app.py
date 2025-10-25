@@ -37,13 +37,27 @@ def index():
         # Get pagination parameters
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
+        venue_filter = request.args.get('venue', '')
         
         # Build query - get all events ordered by start time
         query = db.query(CleanEvent).order_by(CleanEvent.start_time)
         
+        # Apply venue filter if provided (use display_venue for filtering)
+        if venue_filter:
+            query = query.filter(CleanEvent.display_venue == venue_filter)
+        
+        # Get total events count before pagination
+        total_events = query.count()
+        
         # Pagination
         events = query.offset((page - 1) * per_page).limit(per_page).all()
-        total_events = query.count()
+        
+        # Get all unique display venues for the filter dropdown (excluding None/null venues)
+        all_venues = db.query(CleanEvent.display_venue).filter(
+            CleanEvent.display_venue.isnot(None),
+            CleanEvent.display_venue != ''
+        ).distinct().order_by(CleanEvent.display_venue).all()
+        venues = [v[0] for v in all_venues]
         
         db.close()
         
@@ -58,7 +72,9 @@ def index():
                              per_page=per_page,
                              total_pages=total_pages,
                              has_prev=has_prev,
-                             has_next=has_next)
+                             has_next=has_next,
+                             venues=venues,
+                             venue_filter=venue_filter)
     
     except Exception as e:
         logger.error(f"Error in index route: {e}")
@@ -369,4 +385,4 @@ if __name__ == '__main__':
     Base.metadata.create_all(bind=engine)
     
     # Run the app
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)
