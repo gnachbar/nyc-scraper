@@ -6,7 +6,7 @@ const StandardEventSchema = z.object({
   events: z.array(z.object({
     eventName: z.string(),
     eventDate: z.string(),
-    eventTime: z.string().optional(),
+    eventTime: z.string().default(""), // Required field, empty string if not found
     eventLocation: z.string(), // Hardcoded venue name
     eventUrl: z.string().url()
   }))
@@ -85,18 +85,86 @@ export async function scrapeKingsTheatre() {
     
     // Step 5: Extract the required data for all events on the page
     const result = await page.extract({
-      instruction: "Extract all visible events. For each event, get the event name, date, time (if available), and the URL by clicking on the 'See more' button (NOT the 'Buy tickets' button) to get the event page URL",
+      instruction: "Extract all visible events. For each event, get the event name, date, and the URL by clicking on the 'See more' button (NOT the 'Buy tickets' button) to get the event page URL. Set eventLocation to 'Kings Theatre' for all events. If time is visible on the listing, include it as eventTime. If no time is visible, return an empty string for eventTime.",
       schema: StandardEventSchema
     });
 
     // Add hardcoded venue name to all events
-    const eventsWithLocation = result.events.map(event => ({
+    let eventsWithLocation = result.events.map(event => ({
       ...event,
       eventLocation: "Kings Theatre" // Hardcoded venue name
     }));
 
+    // Step 6: Extract event times from individual event pages
+    console.log(`Extracting event times from ${eventsWithLocation.length} individual event pages...`);
+    
+    for (let i = 0; i < eventsWithLocation.length; i++) {
+      const event = eventsWithLocation[i];
+      console.log(`Processing event ${i + 1}/${eventsWithLocation.length}: ${event.eventName}`);
+      
+      let eventPage = null;
+      try {
+        // Create a new page for this event
+        eventPage = await stagehand.context.newPage();
+        
+        // Navigate to the event page with timeout
+        await eventPage.goto(event.eventUrl, { timeout: 30000 });
+        await eventPage.waitForLoadState('networkidle', { timeout: 30000 });
+        
+        // Extract time information from the event page
+        const timeResult = await eventPage.extract({
+          instruction: "Extract the event time/start time from this event page. Look for time information like '8:00 PM', '7:30 PM', 'Doors: 7:00 PM', 'Show: 8:00 PM', etc. Return just the time string if found, or an empty string if no time is available.",
+          schema: z.object({
+            eventTime: z.string().default("")
+          })
+        });
+        
+        // Update the event with the extracted time
+        eventsWithLocation[i] = {
+          ...event,
+          eventTime: timeResult.eventTime || ""
+        };
+        
+        console.log(`  Time extracted: ${timeResult.eventTime || 'No time found'}`);
+        
+        // Small delay to be respectful to the server
+        await page.waitForTimeout(500);
+        
+      } catch (error) {
+        console.warn(`  Failed to extract time for ${event.eventName}: ${error.message}`);
+        // Continue with other events even if one fails
+      } finally {
+        // Always close the event page if it was created
+        if (eventPage) {
+          try {
+            await eventPage.close();
+          } catch (closeError) {
+            console.warn(`  Failed to close page for ${event.eventName}: ${closeError.message}`);
+          }
+        }
+      }
+      
+      // Check if we should continue (browser context still active)
+      try {
+        await page.waitForTimeout(100); // Small check to see if context is still alive
+      } catch (contextError) {
+        console.warn(`Browser context closed after ${i + 1} events. Stopping time extraction.`);
+        break;
+      }
+    }
+
     console.log("=== Kings Theatre Scraping Results ===");
     console.log(`Total events found: ${eventsWithLocation.length}`);
+    
+    // Count events with and without times
+    const eventsWithTimes = eventsWithLocation.filter(e => e.eventTime && e.eventTime.trim() !== '').length;
+    const eventsWithoutTimes = eventsWithLocation.length - eventsWithTimes;
+    
+    if (eventsWithoutTimes > 0) {
+      console.log(`⚠ WARNING: ${eventsWithoutTimes}/${eventsWithLocation.length} events missing times`);
+    } else {
+      console.log(`✓ All ${eventsWithLocation.length} events have times`);
+    }
     
     if (eventsWithLocation.length > 0) {
       console.log("\nFirst few events:");
@@ -152,4 +220,12 @@ export async function scrapeKingsTheatre() {
   } finally {
     await stagehand.close();
   }
+}
+
+// Run the scraper if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  scrapeKingsTheatre().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
 }
