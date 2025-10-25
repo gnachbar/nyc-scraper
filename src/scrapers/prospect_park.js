@@ -6,7 +6,7 @@ const StandardEventSchema = z.object({
   events: z.array(z.object({
     eventName: z.string(),
     eventDate: z.string(),
-    eventTime: z.string().optional(),
+    eventTime: z.string().default(""), // Required field, empty string if not found
     eventLocation: z.string(), // Will extract subvenue from website
     eventUrl: z.string().url()
   }))
@@ -51,7 +51,7 @@ export async function scrapeProspectPark() {
       console.log(`Extracting events from page ${pageCount + 1}/${maxPages}...`);
       
       const result = await page.extract({
-        instruction: "Extract all visible events on the current page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), subvenue/location (as eventLocation - this is the text below the event name like 'Grand Army Plaza', 'Prospect Park Zoo', etc.), and the URL (as eventUrl) by clicking on the event name to get the event page URL",
+        instruction: "Extract all visible events on the current page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), subvenue/location (as eventLocation - this is the text below the event name like 'Grand Army Plaza', 'Prospect Park Zoo', etc.), and the URL (as eventUrl) by clicking on the event name to get the event page URL. If no time is visible on the page, return an empty string for eventTime.",
         schema: StandardEventSchema
       });
 
@@ -83,6 +83,16 @@ export async function scrapeProspectPark() {
 
     console.log(`Total pages processed: ${pageCount}`);
     console.log(`Total events found: ${allEvents.length}`);
+    
+    // Count events with and without times
+    const eventsWithTimes = allEvents.filter(e => e.eventTime && e.eventTime.trim() !== '').length;
+    const eventsWithoutTimes = allEvents.length - eventsWithTimes;
+    
+    if (eventsWithoutTimes > 0) {
+      console.log(`⚠ WARNING: ${eventsWithoutTimes}/${allEvents.length} events missing times`);
+    } else {
+      console.log(`✓ All ${allEvents.length} events have times`);
+    }
 
     if (allEvents.length > 0) {
       console.log("\nFirst few events:");
@@ -138,4 +148,12 @@ export async function scrapeProspectPark() {
   } finally {
     await stagehand.close();
   }
+}
+
+// Run the scraper if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  scrapeProspectPark().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
 }
