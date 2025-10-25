@@ -1,0 +1,122 @@
+[
+  {
+    "venue": "Prospect Park",
+    "event_name": "Prospect Park Wellness Walk",
+    "date": "November 21",
+    "event_time": "10:00 am - 11:00 am",
+    "location": "Points of Interest—Boathouse + Audubon Center",
+    "description": "Join Prospect Park Alliance at the Prospect Park Audubon Center...",
+    "category": "General",
+    "price_info": "Free, RSVP!"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Carousel Rides",
+    "date": "November 21",
+    "event_time": "12:00 pm - 5:00 pm",
+    "location": "Carousel",
+    "description": "Enjoy a ride on Prospect Park’s beloved 1912 Carousel. Open...",
+    "category": "General",
+    "price_info": "$3 – $13"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Greenmarket at Grand Army Plaza",
+    "date": "November 22",
+    "event_time": "8:00 am - 4:00 pm",
+    "location": "Grand Army Plaza",
+    "description": "At what other market can you do all your food...",
+    "category": "General",
+    "price_info": "Free"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Introduction to Birdwatching Outings",
+    "date": "November 22",
+    "event_time": "10:00 am - 12:00 pm",
+    "location": "Points of Interest—Boathouse + Audubon Center",
+    "description": "Whether you’re just starting out or have already joined the...",
+    "category": "General",
+    "price_info": "Free"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "October Weekend Nature Exploration",
+    "date": "November 22",
+    "event_time": "10:00 am - 1:00 pm",
+    "location": "Points of Interest—Boathouse + Audubon Center",
+    "description": "Join the Prospect Park Alliance for nature education programs on...",
+    "category": "General",
+    "price_info": "Free"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "November Weekend Nature Exploration",
+    "date": "November 22",
+    "event_time": "10:00 am - 1:00 pm",
+    "location": "Points of Interest—Boathouse + Audubon Center",
+    "description": "Join Prospect Park Alliance for nature education programs on Saturdays...",
+    "category": "General",
+    "price_info": "Free"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Spooktober! At Prospect Park Zoo",
+    "date": "November 22",
+    "event_time": "10:00 am - 5:30 pm",
+    "location": "Points of Interest—Prospect Park Zoo",
+    "description": "Go batty every weekend in October at the Prospect Park...",
+    "category": "General",
+    "price_info": "$3 – $12"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Prospect Park Tours with Turnstile Tours",
+    "date": "November 22",
+    "event_time": "10:30 am - 12:30 pm",
+    "location": "Prospect Park",
+    "description": "Discover hidden treasures, natural wonders and little-known tales on interactive...",
+    "category": "General",
+    "price_info": "Prices Vary, Registration Required"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Voices of Lunáapeew/Lenape",
+    "date": "November 22",
+    "event_time": "12:00 pm - 4:00 pm",
+    "location": "Lefferts Historic House",
+    "description": "View the video exhibit presented by Prospect Park Alliance and...",
+    "category": "General",
+    "price_info": "Free"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "ReImagine Lefferts Open Hours",
+    "date": "November 22",
+    "event_time": "12:00 pm - 4:00 pm",
+    "location": "Lefferts Historic House",
+    "description": "Visit the Lefferts Historic House for family friendly outdoor and...",
+    "category": "General",
+    "price_info": "Free"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Carousel Rides",
+    "date": "November 22",
+    "event_time": "12:00 pm - 5:00 pm",
+    "location": "Carousel",
+    "description": "Enjoy a ride on Prospect Park’s beloved 1912 Carousel. Open...",
+    "category": "General",
+    "price_info": "$3 – $13"
+  },
+  {
+    "venue": "Prospect Park",
+    "event_name": "Sunday Greenmarket at Bartel-Pritchard Square",
+    "date": "November 23",
+    "event_time": "9:00 am - 2:00 pm",
+    "location": "Bartel-Pritchard Square",
+    "description": "Nestled inside Prospect Park's tree-shaded southwest corner, this much-loved market...",
+    "category": "General",
+    "price_info": "Free"
+  }
+]
