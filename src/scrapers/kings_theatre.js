@@ -95,7 +95,55 @@ export async function scrapeKingsTheatre() {
       eventLocation: "Kings Theatre" // Hardcoded venue name
     }));
 
-    console.log(JSON.stringify({ events: eventsWithLocation }, null, 2));
+    console.log("=== Kings Theatre Scraping Results ===");
+    console.log(`Total events found: ${eventsWithLocation.length}`);
+    
+    if (eventsWithLocation.length > 0) {
+      console.log("\nFirst few events:");
+      eventsWithLocation.slice(0, 5).forEach((event, index) => {
+        console.log(`${index + 1}. ${event.eventName}`);
+        console.log(`   Date: ${event.eventDate}`);
+        console.log(`   Time: ${event.eventTime || 'N/A'}`);
+        console.log(`   Location: ${event.eventLocation}`);
+        console.log(`   URL: ${event.eventUrl}`);
+        console.log('');
+      });
+      
+      // Write events directly to raw_events table
+      console.log("Writing events to database...");
+      const { execSync } = await import('child_process');
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      // Create temporary JSON file for import
+      const tempFile = path.join(process.cwd(), `temp_kings_${Date.now()}.json`);
+      fs.writeFileSync(tempFile, JSON.stringify({ events: eventsWithLocation }, null, 2));
+      
+      try {
+        // Import to database using existing import script
+        execSync(`python3 src/import_scraped_data.py --source kings_theatre --file ${tempFile}`, { stdio: 'inherit' });
+        console.log(`Successfully imported ${eventsWithLocation.length} events to database`);
+        
+        // Run scraper test to compare with previous run
+        console.log("Running scraper test...");
+        try {
+          execSync(`python3 src/test_scrapers.py --source kings_theatre`, { stdio: 'inherit' });
+          console.log("Scraper test completed successfully");
+        } catch (testError) {
+          console.warn("Scraper test failed (non-critical):", testError.message);
+          // Don't throw - test failure shouldn't stop the scraper
+        }
+      } catch (importError) {
+        console.error("Database import failed:", importError);
+        throw importError;
+      } finally {
+        // Clean up temporary file
+        fs.unlinkSync(tempFile);
+      }
+    } else {
+      console.log("No events found!");
+    }
+
     return { events: eventsWithLocation };
 
   } catch (error) {
