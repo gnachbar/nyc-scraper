@@ -29,7 +29,11 @@
 - **Event Location** (string) - **HARDCODED** venue name (NOT extracted from website)
 - **Event URL** (string) - The URL to the event details page
 
-**Important:** The Event Location should be hardcoded based on the venue name for the specific script, NOT extracted from the website. This ensures consistency across all scrapers.
+**Important:** The Event Location handling varies by scraper type:
+- **Single Venue Scrapers** (e.g., MSG Calendar, Kings Theatre): MUST hardcode the venue name in BOTH the extraction instruction AND the schema
+- **Multi-Venue Scrapers** (e.g., Prospect Park): Extract the actual subvenue from the page
+- **ALWAYS include `eventLocation` in the Zod schema** to ensure validation passes
+- **ALWAYS tell Stagehand explicitly** how to populate eventLocation in the extraction instruction
 
 ---
 
@@ -99,8 +103,8 @@ const StandardEventSchema = z.object({
   events: z.array(z.object({
     eventName: z.string(),
     eventDate: z.string(),
-    eventTime: z.string().optional(),
-    eventLocation: z.string(), // Hardcoded venue name
+    eventTime: z.string().default(""), // Empty string if not found
+    eventLocation: z.string(), // REQUIRED: Hardcoded venue name OR extracted subvenue
     eventUrl: z.string().url()
   }))
 });
@@ -140,14 +144,14 @@ async function scrape[SiteName]() {
     
     // Extract data
     const result = await page.extract({
-      instruction: "Extract all visible events. For each event, get the event name, date, time (if available), and the URL by clicking on the 'View Event Details' button or similar link to get the event page URL",
+      instruction: "Extract all visible events. For each event, get the event name, date, time (if available), set eventLocation to '[VENUE_NAME]' for all events, and the URL by clicking on the 'View Event Details' button or similar link to get the event page URL",
       schema: StandardEventSchema
     });
 
-    // Add hardcoded venue name to all events
+    // Note: If Stagehand fails to extract eventLocation properly, add fallback mapping
     const eventsWithLocation = result.events.map(event => ({
       ...event,
-      eventLocation: "[VENUE_NAME]" // Replace with actual venue name
+      eventLocation: event.eventLocation || "[VENUE_NAME]" // Fallback to hardcoded venue name
     }));
 
     console.log(JSON.stringify({ events: eventsWithLocation }, null, 2));
