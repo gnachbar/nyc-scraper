@@ -134,6 +134,16 @@ export async function scrapeMSGCalendar() {
         // Import to database using existing import script
         execSync(`python3 src/import_scraped_data.py --source msg_calendar --file ${tempFile}`, { stdio: 'inherit' });
         console.log(`Successfully imported ${eventsWithLocation.length} events to database`);
+        
+        // Run scraper test to compare with previous run
+        console.log("Running scraper test...");
+        try {
+          execSync(`python3 src/test_scrapers.py --source msg_calendar`, { stdio: 'inherit' });
+          console.log("Scraper test completed successfully");
+        } catch (testError) {
+          console.warn("Scraper test failed (non-critical):", testError.message);
+          // Don't throw - test failure shouldn't stop the scraper
+        }
       } catch (importError) {
         console.error("Database import failed:", importError);
         throw importError;

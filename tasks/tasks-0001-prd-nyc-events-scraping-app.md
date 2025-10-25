@@ -49,11 +49,11 @@
   - [x] 4.3 Create MSG Calendar scraper (https://www.msg.com/calendar?venues=KovZpZA7AAEA)
   - [x] 4.4 Test each scraper individually
 - [ ] 5.0 Scraper Testing & Reporting
-  - [ ] 5.1 Create scraper test framework (src/test_scrapers.py)
-  - [ ] 5.2 Implement run comparison logic (current vs previous run)
-  - [ ] 5.3 Add removed events detection and reporting
-  - [ ] 5.4 Generate JSON reports and console summaries
-  - [ ] 5.5 Update all scrapers to call test script after import
+  - [x] 5.1 Create scraper test framework (src/test_scrapers.py)
+  - [x] 5.2 Implement run comparison logic (current vs previous run)
+  - [x] 5.3 Add removed events detection and reporting
+  - [x] 5.4 Generate JSON reports and console summaries
+  - [x] 5.5 Update all scrapers to call test script after import
 - [ ] 6.0 Data Cleaning Pipeline (Within Source)
   - [ ] 6.1 Create data cleaning script (src/clean_events.py)
   - [ ] 6.2 Implement latest run detection per source
