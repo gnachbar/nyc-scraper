@@ -96,6 +96,55 @@ def test_url_extraction(source: str) -> tuple[bool, str]:
     return has_url, instruction
 
 
+def test_instruction_structure(source: str) -> tuple[bool, list[str]]:
+    """Test that instruction mentions all required fields."""
+    content = read_scraper_file(source)
+    instruction = extract_instruction(content).lower()
+    
+    # Check if instruction mentions all required fields
+    required_mentions = {
+        'eventName': any(term in instruction for term in ['eventname', 'event name', 'name']),
+        'eventDate': any(term in instruction for term in ['eventdate', 'event date', 'date']),
+        'eventTime': any(term in instruction for term in ['eventtime', 'event time', 'time']),
+        'eventLocation': any(term in instruction for term in ['eventlocation', 'event location', 'location', 'venue']),
+        'eventUrl': any(term in instruction for term in ['eventurl', 'event url', 'url'])
+    }
+    
+    missing = [field for field, present in required_mentions.items() if not present]
+    
+    return len(missing) == 0, missing
+
+
+def test_cross_scraper_consistency():
+    """Test that all scrapers' instructions follow similar patterns."""
+    sources = ['kings_theatre', 'msg_calendar', 'prospect_park']
+    
+    # Extract all instructions
+    instructions = {}
+    for source in sources:
+        content = read_scraper_file(source)
+        instructions[source] = extract_instruction(content).lower()
+    
+    # Check for common patterns
+    common_patterns = [
+        'event name',
+        'date',
+        'time',
+        'url',
+        'click'
+    ]
+    
+    results = {}
+    for source, instruction in instructions.items():
+        patterns_found = [pattern for pattern in common_patterns if pattern in instruction]
+        results[source] = {
+            'patterns': patterns_found,
+            'missing': [p for p in common_patterns if p not in instruction]
+        }
+    
+    return results
+
+
 def run_all_tests():
     """Run all consistency tests for all scrapers."""
     sources = ['kings_theatre', 'msg_calendar', 'prospect_park']
@@ -135,12 +184,37 @@ def run_all_tests():
             print("  ✗ URL extraction NOT mentioned in instruction")
             all_passed = False
         
+        # Test 4: Instruction structure consistency
+        structure_ok, missing_fields = test_instruction_structure(source)
+        if structure_ok:
+            print("  ✓ Instruction mentions all required fields")
+        else:
+            print(f"  ✗ Instruction missing fields: {', '.join(missing_fields)}")
+            all_passed = False
+        
         # Show instruction snippet
         instruction_preview = instruction[:150] + "..." if len(instruction) > 150 else instruction
         print(f"  Instruction: {instruction_preview}")
         print()
     
     print("=" * 80)
+    print("CROSS-SCRAPER CONSISTENCY TEST")
+    print("=" * 80)
+    
+    # Cross-scraper consistency check
+    cross_results = test_cross_scraper_consistency()
+    common_patterns = ['event name', 'date', 'time', 'url', 'click']
+    
+    print("\nInstruction Pattern Comparison:")
+    for source, result in cross_results.items():
+        missing = result['missing']
+        if missing:
+            print(f"  ✗ {source}: Missing patterns: {', '.join(missing)}")
+            all_passed = False
+        else:
+            print(f"  ✓ {source}: All common patterns present")
+    
+    print("\n" + "=" * 80)
     if all_passed:
         print("✓ ALL TESTS PASSED")
     else:
