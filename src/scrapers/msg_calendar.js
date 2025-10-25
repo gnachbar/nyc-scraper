@@ -95,16 +95,42 @@ export async function scrapeMSGCalendar() {
 
     // Step 4: Extract all visible events
     console.log("Extracting all visible events...");
-    const result = await page.extract({
-      instruction: "Extract all visible events from the MSG calendar. For each event card or event listing, extract: 1) The event name (as eventName), 2) The date it's happening (as eventDate), 3) The time shown on the event listing if visible (as eventTime - format like '7:00 PM', '8pm', etc.), 4) The URL by clicking on the event name or 'View Event Details' button (as eventUrl). Look carefully for time information - it might be displayed near the date or in the event details. If no time is visible on the page, return an empty string for eventTime.",
-      schema: StandardEventSchema
-    });
+    
+    let result;
+    try {
+      result = await page.extract({
+        instruction: "Extract all visible events from the MSG calendar. For each event card or event listing, extract: 1) The event name (as eventName), 2) The date it's happening (as eventDate), 3) The time shown on the event listing if visible (as eventTime - format like '7:00 PM', '8pm', etc.), 4) Click on the event card to open its details page and extract the FULL URL from the browser address bar (as eventUrl - must be a complete URL starting with https://www.msg.com). Look carefully for time information - it might be displayed near the date or in the event details. If no time is visible on the page, return an empty string for eventTime.",
+        schema: StandardEventSchema
+      });
+    } catch (extractError) {
+      console.error("Extraction failed:", extractError.message);
+      console.log("Taking screenshot for debugging...");
+      await page.screenshot({ path: 'msg_extraction_failed.png' });
+      throw new Error(`Failed to extract events: ${extractError.message}`);
+    }
+    
+    // Validate result
+    if (!result || !result.events) {
+      console.error("No events extracted from page");
+      await page.screenshot({ path: 'msg_no_events.png' });
+      throw new Error("Extraction returned no events");
+    }
 
-    // Add hardcoded venue name to all events
-    const eventsWithLocation = result.events.map(event => ({
-      ...event,
-      eventLocation: "Madison Square Garden" // Hardcoded MSG venue name
-    }));
+    // Add hardcoded venue name to all events and fix URLs
+    const eventsWithLocation = result.events.map(event => {
+      // Fix URLs that are just IDs (like "0-6615") - convert to full MSG URLs
+      let fullUrl = event.eventUrl;
+      if (event.eventUrl && !event.eventUrl.startsWith('http')) {
+        // If URL is just an ID, skip it - we can't construct a full URL from just an ID
+        fullUrl = '';
+      }
+      
+      return {
+        ...event,
+        eventUrl: fullUrl,
+        eventLocation: "Madison Square Garden" // Hardcoded MSG venue name
+      };
+    });
 
     console.log("=== MSG Calendar Scraping Results ===");
     console.log(`Total events found: ${eventsWithLocation.length}`);
