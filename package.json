@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/app/main.js",
     "test:kings": "node src/app/test-kings.js",
+    "test:kings-links": "node src/app/test-kings-links.js",
     "test:prospect-park": "node src/app/test-prospect-park.js",
     "test:browserbase": "node src/app/test-browserbase.js"
   },
