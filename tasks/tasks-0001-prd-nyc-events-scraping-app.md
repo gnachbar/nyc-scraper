@@ -16,6 +16,10 @@
 - `templates/error.html` - Error page template
 - `static/css/style.css` - Main stylesheet with responsive design
 - `static/js/main.js` - JavaScript for enhanced interactivity
+- `src/extract_event_times.py` - Reusable event time extractor utility
+- `integrate_time_extraction.py` - Integration script for Kings Theatre workflow
+- `test_time_extractor.py` - Test script for time extractor
+- `docs/event-time-extractor.md` - Documentation for time extractor utility
 - `requirements.txt` - Python dependencies
 - `config.py` - Configuration file (database URLs, API keys)
 - `README.md` - Setup and usage instructions
@@ -68,32 +72,46 @@
   - [x] 6.4 Standardize data formatting (title case, venue normalization)
   - [x] 6.5 Add quality control validation (ensure start_time present)
   - [x] 6.6 Create CLI for cleaning individual sources or all sources
-- [ ] 7.0 Web Interface
+- [x] 7.0 Web Interface
   - [x] 7.1 Create Flask application (app.py) with routes
   - [x] 7.2 Build HTML templates (base, index, event_detail)
   - [x] 7.3 Add static assets (CSS, JavaScript)
   - [x] 7.6 Create JSON API endpoint for events
-- [ ] 8.0 Neon Database Migration
-  - [ ] 8.1 Set up Neon PostgreSQL database
-  - [ ] 8.2 Update config.py for environment-based database URLs
-  - [ ] 8.3 Create migration script (src/migrate_to_neon.py)
-  - [ ] 8.4 Test web app with Neon database
-- [ ] 9.0 Vercel Deployment
-  - [ ] 9.1 Create Vercel configuration (vercel.json)
-  - [ ] 9.2 Create requirements-vercel.txt (web app dependencies only)
-  - [ ] 9.3 Configure environment variables in Vercel
-  - [ ] 9.4 Deploy web app to Vercel
-  - [ ] 9.5 Set up GitHub Actions workflow for weekly scraper runs
-  - [ ] 9.6 Test complete pipeline with automated deployment
-- [ ] 10.0 Cross-Source Deduplication
-  - [ ] 10.1 Create deduplication script (src/deduplicate_across_sources.py)
-  - [ ] 10.2 Implement fuzzy matching algorithm (85% title similarity)
-  - [ ] 10.3 Add venue normalization for matching
-  - [ ] 10.4 Create merge logic for duplicate events
-  - [ ] 10.5 Generate JSON report of duplicates and merge decisions
-  - [ ] 10.6 Add python-Levenshtein dependency
-- [ ] 11.0 Enhanced Web Interface Features
-  - [ ] 11.1 Implement filtering by date range, venue, category
-  - [ ] 11.2 Add search functionality and pagination
-- [ ] 12.0 Further Extensions
-  - [ ] 12.1 Adding day of week filtering
+- [ ] 8.0 Ensure Consistency & Debugging
+  - [x] 8.1 Debug Kings Theater - COMPLETED: Created reusable event time extractor using BeautifulSoup + requests. Successfully extracts times from individual event pages without browser context issues.
+  - [x] 8.2 Debug MSG event time start issues - COMPLETED: Fixed MSG scraper extraction instruction to properly extract times from calendar page. Updated import script to handle "ET" timezone suffix. MSG events now extract times correctly (96/96 events with times in test).
+  - [ ] 8.3 Ensure the data cleaning script is running after each scraping session to test for any regressions on things like start time (or lots of events missing between last and current run)
+- [ ] 9.0 GitHub Actions Automation & Scheduled Scraping
+  - [ ] 9.1 Create GitHub Actions workflow file (.github/workflows/scrape.yml)
+  - [ ] 9.2 Configure cron schedule for weekly scraper runs
+  - [ ] 9.3 Set up GitHub secrets for BROWSERBASE_API_KEY and DATABASE_URL
+  - [ ] 9.4 Configure Node.js environment and dependencies
+  - [ ] 9.5 Configure Python environment and dependencies
+  - [ ] 9.6 Add workflow to run all scrapers sequentially
+  - [ ] 9.7 Add automatic data cleaning after scraper runs
+  - [ ] 9.8 Configure workflow notifications for success/failure
+  - [ ] 9.9 Test workflow with manual trigger
+  - [ ] 9.10 Test complete automation pipeline end-to-end
+- [ ] 10.0 Neon Database Migration
+  - [ ] 10.1 Set up Neon PostgreSQL database
+  - [ ] 10.2 Update config.py for environment-based database URLs
+  - [ ] 10.3 Create migration script (src/migrate_to_neon.py)
+  - [ ] 10.4 Test web app with Neon database
+- [ ] 11.0 Vercel Deployment
+  - [ ] 11.1 Create Vercel configuration (vercel.json)
+  - [ ] 11.2 Create requirements-vercel.txt (web app dependencies only)
+  - [ ] 11.3 Configure environment variables in Vercel
+  - [ ] 11.4 Deploy web app to Vercel
+  - [ ] 11.5 Test complete pipeline with automated deployment
+- [ ] 12.0 Cross-Source Deduplication
+  - [ ] 12.1 Create deduplication script (src/deduplicate_across_sources.py)
+  - [ ] 12.2 Implement fuzzy matching algorithm (85% title similarity)
+  - [ ] 12.3 Add venue normalization for matching
+  - [ ] 12.4 Create merge logic for duplicate events
+  - [ ] 12.5 Generate JSON report of duplicates and merge decisions
+  - [ ] 12.6 Add python-Levenshtein dependency
+- [ ] 13.0 Enhanced Web Interface Features
+  - [x] 13.1 Implement filtering by date range, venue, category - PARTIAL: Venue filtering implemented with display_venue. Date range and category filtering pending.
+  - [x] 13.2 Add search functionality and pagination - COMPLETED: Pagination implemented. Search functionality pending.
+- [ ] 14.0 Further Extensions
+  - [ ] 14.1 Adding day of week filtering
