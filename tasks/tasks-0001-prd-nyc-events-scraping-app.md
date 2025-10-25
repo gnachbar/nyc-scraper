@@ -82,14 +82,14 @@
   - [x] 8.2 Debug MSG event time start issues - COMPLETED: Fixed MSG scraper extraction instruction to properly extract times from calendar page. Updated import script to handle "ET" timezone suffix. MSG events now extract times correctly (96/96 events with times in test).
   - [ ] 8.3 Ensure the data cleaning script is running after each scraping session to test for any regressions on things like start time (or lots of events missing between last and current run)
 - [ ] 9.0 GitHub Actions Automation & Scheduled Scraping
-  - [ ] 9.1 Create GitHub Actions workflow file (.github/workflows/scrape.yml)
-  - [ ] 9.2 Configure cron schedule for weekly scraper runs
+  - [x] 9.1 Create GitHub Actions workflow file (.github/workflows/scrape.yml)
+  - [x] 9.2 Configure cron schedule for weekly scraper runs
   - [ ] 9.3 Set up GitHub secrets for BROWSERBASE_API_KEY and DATABASE_URL
-  - [ ] 9.4 Configure Node.js environment and dependencies
-  - [ ] 9.5 Configure Python environment and dependencies
-  - [ ] 9.6 Add workflow to run all scrapers sequentially
-  - [ ] 9.7 Add automatic data cleaning after scraper runs
-  - [ ] 9.8 Configure workflow notifications for success/failure
+  - [x] 9.4 Configure Node.js environment and dependencies
+  - [x] 9.5 Configure Python environment and dependencies
+  - [x] 9.6 Add workflow to run all scrapers sequentially - COMPLETED: Created src/run_pipeline.py orchestration script
+  - [x] 9.7 Add automatic data cleaning after scraper runs - COMPLETED: Pipeline runs cleaning automatically
+  - [x] 9.8 Configure workflow notifications for success/failure - COMPLETED: Report artifacts uploaded
   - [ ] 9.9 Test workflow with manual trigger
   - [ ] 9.10 Test complete automation pipeline end-to-end
 - [ ] 10.0 Neon Database Migration
