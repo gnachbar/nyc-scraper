@@ -1,24 +1,30 @@
 ## Relevant Files
 
-- `scrapers/kings_theatre.py` - Kings Theatre scraper using Browserbase
-- `scrapers/prospect_park.py` - Prospect Park events scraper using Browserbase  
-- `scrapers/brooklyn_paper.py` - Brooklyn Paper events scraper using Browserbase
-- `database.py` - Simple database connection and operations
-- `models.py` - Simple SQLAlchemy models for raw_events and clean_events
-- `process_data.py` - Data cleaning and deduplication script
-- `app.py` - Simple Flask web app for browsing events
-- `templates/index.html` - Basic HTML template for event listing
-- `static/style.css` - Simple CSS styling
-- `requirements.txt` - Minimal Python dependencies
-- `config.py` - Configuration file (Neon DB URL, Browserbase API key)
+- `src/scrapers/kings.js` - Kings Theatre scraper using Stagehand
+- `src/scrapers/prospect_park.js` - Prospect Park events scraper using Stagehand  
+- `src/scrapers/msg_calendar.js` - MSG Calendar scraper using Stagehand
+- `database.py` - Database connection and operations
+- `models.py` - SQLAlchemy models for scrape_runs, raw_events, and clean_events
+- `src/import_scraped_data.py` - Data import script for raw_events table
+- `src/test_scrapers.py` - Scraper testing and reporting framework
+- `src/clean_events.py` - Data cleaning pipeline (within source)
+- `src/deduplicate_across_sources.py` - Cross-source deduplication
+- `app.py` - Flask web application for browsing events
+- `templates/` - HTML templates for web interface
+- `static/` - CSS and JavaScript assets
+- `requirements.txt` - Python dependencies
+- `config.py` - Configuration file (database URLs, API keys)
 - `README.md` - Setup and usage instructions
 
 ### Notes
 
-- Using hosted PostgreSQL (Neon) instead of local Docker setup
-- Simple SQLAlchemy models without complex migrations
-- Minimal dependencies to get started quickly
-- Focus on working end-to-end first, optimize later
+- Using Stagehand with Browserbase for web scraping automation
+- PostgreSQL database with snapshot-based raw_events table design
+- ScrapeRun tracking for audit trail and run comparison
+- Comprehensive testing and reporting for scraper reliability
+- Two-stage data cleaning: within-source then cross-source deduplication
+- Flask web interface with responsive design
+- Vercel deployment with GitHub Actions for automated scraping
 
 ## Tasks
 
@@ -42,20 +48,42 @@
   - [x] 4.2 Create Prospect Park events scraper (https://www.prospectpark.org/events/)
   - [x] 4.3 Create MSG Calendar scraper (https://www.msg.com/calendar?venues=KovZpZA7AAEA)
   - [x] 4.4 Test each scraper individually
-- [ ] 5.0 Data Processing
-  - [ ] 5.1 Add ScrapeRun model to track scraping executions
-  - [ ] 5.2 Update RawEvent model with scrape_run_id foreign key
-  - [ ] 5.3 Create data import script to load JSON/CSV into raw_events
-  - [ ] 5.4 Create data cleaning script with deduplication logic
-  - [ ] 5.5 Ensure all events have start_time (quality control)
-  - [ ] 5.6 Move cleaned data to clean_events table
-- [ ] 6.0 Simple Web Interface
-  - [ ] 6.1 Create basic Flask app that reads from clean_events table
-  - [ ] 6.2 Build simple HTML template to display events
-  - [ ] 6.3 Add basic filtering by date and category
-  - [ ] 6.4 Add simple search functionality
-- [ ] 7.0 Migrate to Neon (Optional)
-  - [ ] 7.1 Create Neon PostgreSQL database
-  - [ ] 7.2 Update config.py to use Neon connection string
-  - [ ] 7.3 Migrate local data to Neon
-  - [ ] 7.4 Test web app with Neon database
+- [ ] 5.0 Scraper Testing & Reporting
+  - [ ] 5.1 Create scraper test framework (src/test_scrapers.py)
+  - [ ] 5.2 Implement run comparison logic (current vs previous run)
+  - [ ] 5.3 Add removed events detection and reporting
+  - [ ] 5.4 Generate JSON reports and console summaries
+  - [ ] 5.5 Update all scrapers to call test script after import
+- [ ] 6.0 Data Cleaning Pipeline (Within Source)
+  - [ ] 6.1 Create data cleaning script (src/clean_events.py)
+  - [ ] 6.2 Implement latest run detection per source
+  - [ ] 6.3 Add within-source deduplication logic
+  - [ ] 6.4 Standardize data formatting (title case, venue normalization)
+  - [ ] 6.5 Add quality control validation (ensure start_time present)
+  - [ ] 6.6 Create CLI for cleaning individual sources or all sources
+- [ ] 7.0 Cross-Source Deduplication
+  - [ ] 7.1 Create deduplication script (src/deduplicate_across_sources.py)
+  - [ ] 7.2 Implement fuzzy matching algorithm (85% title similarity)
+  - [ ] 7.3 Add venue normalization for matching
+  - [ ] 7.4 Create merge logic for duplicate events
+  - [ ] 7.5 Generate JSON report of duplicates and merge decisions
+  - [ ] 7.6 Add python-Levenshtein dependency
+- [ ] 8.0 Web Interface
+  - [ ] 8.1 Create Flask application (app.py) with routes
+  - [ ] 8.2 Build HTML templates (base, index, event_detail)
+  - [ ] 8.3 Add static assets (CSS, JavaScript)
+  - [ ] 8.4 Implement filtering by date range, venue, category
+  - [ ] 8.5 Add search functionality and pagination
+  - [ ] 8.6 Create JSON API endpoint for events
+- [ ] 9.0 Neon Database Migration
+  - [ ] 9.1 Set up Neon PostgreSQL database
+  - [ ] 9.2 Update config.py for environment-based database URLs
+  - [ ] 9.3 Create migration script (src/migrate_to_neon.py)
+  - [ ] 9.4 Test web app with Neon database
+- [ ] 10.0 Vercel Deployment
+  - [ ] 10.1 Create Vercel configuration (vercel.json)
+  - [ ] 10.2 Create requirements-vercel.txt (web app dependencies only)
+  - [ ] 10.3 Configure environment variables in Vercel
+  - [ ] 10.4 Deploy web app to Vercel
+  - [ ] 10.5 Set up GitHub Actions workflow for weekly scraper runs
+  - [ ] 10.6 Test complete pipeline with automated deployment
