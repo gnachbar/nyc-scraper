@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}NYC Events - Home{% endblock %}
+
+{% block content %}
+{% if events %}
+    
+    <div class="events-table-container">
+        <table class="events-table">
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Start Time</th>
+                    <th>Venue Name</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                <tr>
+                    <td class="event-name">
+                        <a href="{{ url_for('event_detail', event_id=event.id) }}" class="event-link">
+                            {{ event.title }}
+                        </a>
+                    </td>
+                    <td class="event-date">
+                        {% if event.start_time %}
+                            {{ event.start_time.strftime('%m/%d/%y') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="event-time">
+                        {% if event.start_time %}
+                            {{ event.start_time.strftime('%I:%M %p') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="event-venue">
+                        {% if event.venue %}
+                            {{ event.venue }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="event-link-cell">
+                        {% if event.url %}
+                            <a href="{{ event.url }}" target="_blank" class="event-link">Link</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if has_prev %}
+            <a href="{{ url_for('index', page=page-1) }}">← Previous</a>
+        {% endif %}
+        
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}
+                <span class="current">{{ p }}</span>
+            {% elif p <= 5 or p > total_pages - 5 or (p >= page - 2 and p <= page + 2) %}
+                <a href="{{ url_for('index', page=p) }}">{{ p }}</a>
+            {% elif p == 6 and page > 8 %}
+                <span>...</span>
+            {% elif p == total_pages - 5 and page < total_pages - 7 %}
+                <span>...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if has_next %}
+            <a href="{{ url_for('index', page=page+1) }}">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+{% else %}
+    <div class="event-card">
+        <h3>No Events Found</h3>
+        <p>Try adjusting your search criteria or check back later for new events.</p>
+    </div>
+{% endif %}
+{% endblock %}
