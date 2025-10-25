@@ -2,12 +2,28 @@
 SQLAlchemy models for NYC Events Scraper
 """
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from config import Config
 
 Base = declarative_base()
+
+
+class ScrapeRun(Base):
+    """Track each scraping execution"""
+    __tablename__ = 'scrape_runs'
+    
+    id = Column(Integer, primary_key=True)
+    source = Column(String(100), nullable=False)  # kings_theatre, prospect_park, msg_calendar
+    started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    completed_at = Column(DateTime)
+    status = Column(String(50), default='running')  # running, completed, failed
+    events_scraped = Column(Integer, default=0)
+    error_message = Column(Text)
+    
+    def __repr__(self):
+        return f"<ScrapeRun(id={self.id}, source='{self.source}', status='{self.status}')>"
 
 
 class RawEvent(Base):
@@ -16,7 +32,7 @@ class RawEvent(Base):
     
     id = Column(Integer, primary_key=True)
     source = Column(String(100), nullable=False)  # kings_theatre, prospect_park, brooklyn_paper
-    source_id = Column(String(200))  # Original ID from source website
+    source_id = Column(String(500))  # Original ID from source website
     title = Column(Text)
     description = Column(Text)
     start_time = Column(DateTime)
@@ -30,6 +46,10 @@ class RawEvent(Base):
     raw_data = Column(JSON)  # Store original scraped data as JSON
     scraped_at = Column(DateTime, default=datetime.utcnow)
     processed = Column(Boolean, default=False)
+    scrape_run_id = Column(Integer, ForeignKey('scrape_runs.id'), nullable=True)
+    
+    # Relationship to ScrapeRun
+    scrape_run = relationship("ScrapeRun", backref="events")
     
     def __repr__(self):
         return f"<RawEvent(id={self.id}, source='{self.source}', title='{self.title}')>"

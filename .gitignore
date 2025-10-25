@@ -176,3 +176,9 @@ raw_data/
 processed_data/
 cache/
 screenshots/
+
+# Test outputs
+test-output/
+
+# Log files
+*.log

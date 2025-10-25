@@ -1,14 +1,14 @@
 import { withStagehand } from '../lib/stagehand.js';
-import { scrapeProspectPark } from '../scrapers/prospect_park.js';
+import { scrapeKingsTheatre } from '../scrapers/kings_theatre.js';
 import fs from 'fs';
 
-async function testProspectPark() {
+async function testKingsTheatre() {
   await withStagehand(async (page) => {
     try {
-      console.log("Testing Prospect Park scraper...");
-      const result = await scrapeProspectPark();
+      console.log("Testing Kings Theatre scraper...");
+      const result = await scrapeKingsTheatre();
 
-      console.log(`\n=== Prospect Park Scraping Results ===`);
+      console.log(`\n=== Kings Theatre Scraping Results ===`);
       console.log(`Total events found: ${result.events.length}`);
 
       if (result.events.length > 0) {
@@ -22,21 +22,21 @@ async function testProspectPark() {
           console.log('');
         });
 
-        fs.writeFileSync('prospect_park_events.json', JSON.stringify(result.events, null, 2));
-        console.log(`Events saved to prospect_park_events.json`);
+        fs.writeFileSync('kings_theatre_events.json', JSON.stringify(result.events, null, 2));
+        console.log(`Events saved to kings_theatre_events.json`);
       } else {
         console.log("No events found!");
       }
 
     } catch (error) {
-      console.error("Error testing Prospect Park scraper:", error.message);
+      console.error("Error testing Kings Theatre scraper:", error.message);
       console.error(error.stack);
     }
   });
 }
 
 if (process.argv[1] === new URL(import.meta.url).pathname) {
-  testProspectPark().catch(err => {
+  testKingsTheatre().catch(err => {
     console.error(err);
     process.exit(1);
   });

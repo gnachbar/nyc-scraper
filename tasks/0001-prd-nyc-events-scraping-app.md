@@ -35,6 +35,9 @@ The NYC Events Web Scraping Application is a comprehensive system designed to ag
 2.2. The system must preserve original data structure and metadata from each source
 2.3. The system must track data source, scraping timestamp, and processing status
 2.4. The system must handle data from different sources with varying field structures
+2.5. The system must track scrape_run_id for each event to link to scraping execution metadata
+2.6. The system must preserve complete scraping history for audit and trend analysis
+2.7. The system must support weekly scraping cadence with snapshot-based data storage
 
 ### 3. Data Cleaning & Processing
 3.1. The system must clean and standardize event data across all sources
@@ -88,6 +91,13 @@ The NYC Events Web Scraping Application is a comprehensive system designed to ag
 - **Performance**: Indexed database queries and pagination for large event lists
 - **Scalability**: Modular scraper architecture to easily add new data sources
 
+### Raw Events Table Design
+
+- **Snapshot Approach**: All scrapes create new rows (no deduplication in raw_events table)
+- **Scrape Run Tracking**: Each scraping execution tracked with metadata including start/end times, status, and event counts
+- **Event Lifecycle**: Historical data preserved for trend analysis and debugging purposes
+- **Weekly Execution**: Designed for recurring scraper runs with complete audit trail
+
 ## Success Metrics
 
 - **Data Accuracy**: 95%+ of events have complete start time information
@@ -107,3 +117,4 @@ The NYC Events Web Scraping Application is a comprehensive system designed to ag
 6. How should the system handle events with incomplete location information?
 7. What backup and disaster recovery requirements exist for the data?
 8. Should there be any data retention policies for historical events?
+9. How to handle events that are removed from source websites? (Future: add inactive flag)

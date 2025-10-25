@@ -61,5 +61,27 @@ export async function scrapeKingsTheatre(page) {
     event_time: event.event_time
   }));
 
+  // Write events directly to raw_events table
+  console.log("Writing events to database...");
+  const { execSync } = await import('child_process');
+  const fs = await import('fs');
+  const path = await import('path');
+  
+  // Create temporary JSON file for import
+  const tempFile = path.join(process.cwd(), `temp_kings_${Date.now()}.json`);
+  fs.writeFileSync(tempFile, JSON.stringify({ events: formattedEvents }, null, 2));
+  
+  try {
+    // Import to database using existing import script
+    execSync(`python3 scripts/import_scraped_data.py --source kings_theatre --file ${tempFile}`, { stdio: 'inherit' });
+    console.log(`Successfully imported ${formattedEvents.length} events to database`);
+  } catch (importError) {
+    console.error("Database import failed:", importError);
+    throw importError;
+  } finally {
+    // Clean up temporary file
+    fs.unlinkSync(tempFile);
+  }
+
   return formattedEvents;
 }

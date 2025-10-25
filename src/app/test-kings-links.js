@@ -14,7 +14,7 @@ export async function extractKingsEventLinks(page) {
   // Extract the event links directly
   console.log("Extracting event links...");
   const eventLinks = await page.extract({
-    instruction: "Find the first 10 events on the Kings Theatre events page and extract both the event names and their corresponding URLs. Look for event cards or listings that have clickable links. Extract the href attribute values from anchor tags that link to individual event pages.",
+    instruction: "Find the first 10 events on the Kings Theatre events page and extract the URLs that lead to the event detail pages (not the ticket/calendar pages). Look for links that go to the main event information page, not the 'Buy tickets' or 'Calendar' buttons. Avoid URLs that end with '/calendar' - those are ticket pages, not event detail pages.",
     schema: z.object({
       event_links: z.array(
         z.object({
