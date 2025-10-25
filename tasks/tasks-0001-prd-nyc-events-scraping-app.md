@@ -10,8 +10,12 @@
 - `src/clean_events.py` - Data cleaning pipeline (within source)
 - `src/deduplicate_across_sources.py` - Cross-source deduplication
 - `app.py` - Flask web application for browsing events
-- `templates/` - HTML templates for web interface
-- `static/` - CSS and JavaScript assets
+- `templates/base.html` - Base HTML template with styling
+- `templates/index.html` - Home page with event listings and filters
+- `templates/event_detail.html` - Individual event detail page
+- `templates/error.html` - Error page template
+- `static/css/style.css` - Main stylesheet with responsive design
+- `static/js/main.js` - JavaScript for enhanced interactivity
 - `requirements.txt` - Python dependencies
 - `config.py` - Configuration file (database URLs, API keys)
 - `README.md` - Setup and usage instructions
@@ -54,36 +58,42 @@
   - [x] 5.3 Add removed events detection and reporting
   - [x] 5.4 Generate JSON reports and console summaries
   - [x] 5.5 Update all scrapers to call test script after import
-- [ ] 6.0 Data Cleaning Pipeline (Within Source)
-  - [ ] 6.1 Create data cleaning script (src/clean_events.py)
-  - [ ] 6.2 Implement latest run detection per source
-  - [ ] 6.3 Add within-source deduplication logic
-  - [ ] 6.4 Standardize data formatting (title case, venue normalization)
-  - [ ] 6.5 Add quality control validation (ensure start_time present)
-  - [ ] 6.6 Create CLI for cleaning individual sources or all sources
-- [ ] 7.0 Cross-Source Deduplication
-  - [ ] 7.1 Create deduplication script (src/deduplicate_across_sources.py)
-  - [ ] 7.2 Implement fuzzy matching algorithm (85% title similarity)
-  - [ ] 7.3 Add venue normalization for matching
-  - [ ] 7.4 Create merge logic for duplicate events
-  - [ ] 7.5 Generate JSON report of duplicates and merge decisions
-  - [ ] 7.6 Add python-Levenshtein dependency
-- [ ] 8.0 Web Interface
-  - [ ] 8.1 Create Flask application (app.py) with routes
-  - [ ] 8.2 Build HTML templates (base, index, event_detail)
-  - [ ] 8.3 Add static assets (CSS, JavaScript)
-  - [ ] 8.4 Implement filtering by date range, venue, category
-  - [ ] 8.5 Add search functionality and pagination
-  - [ ] 8.6 Create JSON API endpoint for events
-- [ ] 9.0 Neon Database Migration
-  - [ ] 9.1 Set up Neon PostgreSQL database
-  - [ ] 9.2 Update config.py for environment-based database URLs
-  - [ ] 9.3 Create migration script (src/migrate_to_neon.py)
-  - [ ] 9.4 Test web app with Neon database
-- [ ] 10.0 Vercel Deployment
-  - [ ] 10.1 Create Vercel configuration (vercel.json)
-  - [ ] 10.2 Create requirements-vercel.txt (web app dependencies only)
-  - [ ] 10.3 Configure environment variables in Vercel
-  - [ ] 10.4 Deploy web app to Vercel
-  - [ ] 10.5 Set up GitHub Actions workflow for weekly scraper runs
-  - [ ] 10.6 Test complete pipeline with automated deployment
+  - [x] 5.6 Add start time collection validation (detect midnight times issue)
+- [x] 6.0 Data Cleaning Pipeline (Within Source)
+  - [x] 6.1 Create data cleaning script (src/clean_events.py)
+  - [x] 6.1.1 Fix architecture: READ ONLY from raw_events, WRITE ONLY to clean_events
+  - [x] 6.2 Implement latest run detection per source
+  - [x] 6.2.1 Add step to clear existing clean events before processing latest run
+  - [x] 6.3 Add within-source deduplication logic
+  - [x] 6.4 Standardize data formatting (title case, venue normalization)
+  - [x] 6.5 Add quality control validation (ensure start_time present)
+  - [x] 6.6 Create CLI for cleaning individual sources or all sources
+- [ ] 7.0 Web Interface
+  - [x] 7.1 Create Flask application (app.py) with routes
+  - [x] 7.2 Build HTML templates (base, index, event_detail)
+  - [x] 7.3 Add static assets (CSS, JavaScript)
+  - [x] 7.6 Create JSON API endpoint for events
+- [ ] 8.0 Neon Database Migration
+  - [ ] 8.1 Set up Neon PostgreSQL database
+  - [ ] 8.2 Update config.py for environment-based database URLs
+  - [ ] 8.3 Create migration script (src/migrate_to_neon.py)
+  - [ ] 8.4 Test web app with Neon database
+- [ ] 9.0 Vercel Deployment
+  - [ ] 9.1 Create Vercel configuration (vercel.json)
+  - [ ] 9.2 Create requirements-vercel.txt (web app dependencies only)
+  - [ ] 9.3 Configure environment variables in Vercel
+  - [ ] 9.4 Deploy web app to Vercel
+  - [ ] 9.5 Set up GitHub Actions workflow for weekly scraper runs
+  - [ ] 9.6 Test complete pipeline with automated deployment
+- [ ] 10.0 Cross-Source Deduplication
+  - [ ] 10.1 Create deduplication script (src/deduplicate_across_sources.py)
+  - [ ] 10.2 Implement fuzzy matching algorithm (85% title similarity)
+  - [ ] 10.3 Add venue normalization for matching
+  - [ ] 10.4 Create merge logic for duplicate events
+  - [ ] 10.5 Generate JSON report of duplicates and merge decisions
+  - [ ] 10.6 Add python-Levenshtein dependency
+- [ ] 11.0 Enhanced Web Interface Features
+  - [ ] 11.1 Implement filtering by date range, venue, category
+  - [ ] 11.2 Add search functionality and pagination
+- [ ] 12.0 Further Extensions
+  - [ ] 12.1 Adding day of week filtering

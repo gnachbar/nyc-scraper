@@ -229,6 +229,58 @@ def validate_event_quality(event: RawEvent) -> List[QualityIssue]:
     return issues
 
 
+def validate_start_time_collection(events: List[RawEvent]) -> List[QualityIssue]:
+    """
+    Validate that start times are being properly collected (not all showing 00:00:00).
+    Returns a list of QualityIssue objects for start time collection problems.
+    """
+    issues = []
+    
+    if not events:
+        return issues
+    
+    # Count events with midnight times (00:00:00)
+    midnight_events = []
+    unique_times = set()
+    
+    for event in events:
+        if event.start_time:
+            # Check if time is midnight (00:00:00)
+            if event.start_time.time().hour == 0 and event.start_time.time().minute == 0 and event.start_time.time().second == 0:
+                midnight_events.append(event)
+            unique_times.add(event.start_time.time())
+    
+    # If all events have midnight times, this suggests scraper isn't collecting actual times
+    if len(midnight_events) == len(events):
+        issues.append(QualityIssue(
+            event_id=0,  # Use 0 for run-level issues
+            title="ALL EVENTS",
+            issue_type="all_midnight_times",
+            description=f"All {len(events)} events have midnight times (00:00:00) - scraper may not be collecting actual show times",
+            severity="error"
+        ))
+    elif len(midnight_events) > len(events) * 0.8:  # More than 80% have midnight times
+        issues.append(QualityIssue(
+            event_id=0,
+            title="MOST EVENTS",
+            issue_type="mostly_midnight_times",
+            description=f"{len(midnight_events)}/{len(events)} events have midnight times (00:00:00) - possible scraper issue",
+            severity="warning"
+        ))
+    
+    # Check for very few unique times (suggests limited time collection)
+    if len(unique_times) <= 2 and len(events) > 10:
+        issues.append(QualityIssue(
+            event_id=0,
+            title="LIMITED TIME VARIETY",
+            issue_type="limited_time_variety",
+            description=f"Only {len(unique_times)} unique times found for {len(events)} events - possible scraper limitation",
+            severity="warning"
+        ))
+    
+    return issues
+
+
 def analyze_removed_events_patterns(removed_events: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
     Analyze patterns in removed events to help identify potential issues.
@@ -292,6 +344,7 @@ def generate_scrape_report(comparison: Dict[str, Any], source: str,
     current_events = get_events_for_run(current_run.id)
     quality_issues = []
     
+    # Validate individual event quality
     for event in current_events:
         issues = validate_event_quality(event)
         for issue in issues:
@@ -302,6 +355,17 @@ def generate_scrape_report(comparison: Dict[str, Any], source: str,
                 'description': issue.description,
                 'severity': issue.severity
             })
+    
+    # Validate start time collection across all events
+    start_time_issues = validate_start_time_collection(current_events)
+    for issue in start_time_issues:
+        quality_issues.append({
+            'event_id': issue.event_id,
+            'title': issue.title,
+            'issue_type': issue.issue_type,
+            'description': issue.description,
+            'severity': issue.severity
+        })
     
     # Analyze removed events patterns
     removed_events_analysis = analyze_removed_events_patterns(comparison['removed_events'])
