@@ -28,15 +28,15 @@
   - [x] 1.3 Create config.py for local DB and Browserbase API key
   - [x] 1.4 Set up basic logging
   - [x] 1.5 Add code linter (flake8 or black)
-- [ ] 2.0 Local Database Setup
+- [x] 2.0 Local Database Setup
   - [x] 2.1 Install PostgreSQL locally (or use SQLite for even simpler start)
   - [x] 2.2 Create simple SQLAlchemy models (raw_events, clean_events)
   - [x] 2.3 Set up database connection and create tables
   - [x] 2.4 Test database connection
-- [ ] 3.0 Browserbase Integration
-  - [ ] 3.1 Install and configure Browserbase Python SDK
-  - [ ] 3.2 Create simple Browserbase client wrapper
-  - [ ] 3.3 Test basic browser session creation
+- [x] 3.0 Browserbase Integration
+  - [x] 3.1 Install and configure Browserbase Python SDK
+  - [x] 3.2 Create simple Browserbase client wrapper
+  - [x] 3.3 Test basic browser session creation
 - [ ] 4.0 Simple Scrapers (3 scrapers)
   - [ ] 4.1 Create Kings Theatre scraper (https://www.kingstheatre.com/)
   - [ ] 4.2 Create Prospect Park events scraper (https://www.prospectpark.org/events/)
