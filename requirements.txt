@@ -1,0 +1,14 @@
+# NYC Events Scraper - Python Backend Dependencies
+
+# Web scraping
+browserbase>=1.0.0
+
+# Database
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Utilities
+click>=8.1.0
