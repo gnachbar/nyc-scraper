@@ -27,6 +27,7 @@
   - [x] 1.2 Set up basic project structure (scrapers/, templates/, static/)
   - [x] 1.3 Create config.py for local DB and Browserbase API key
   - [x] 1.4 Set up basic logging
+  - [x] 1.5 Add code linter (flake8 or black)
 - [ ] 2.0 Local Database Setup
   - [ ] 2.1 Install PostgreSQL locally (or use SQLite for even simpler start)
   - [ ] 2.2 Create simple SQLAlchemy models (raw_events, clean_events)
