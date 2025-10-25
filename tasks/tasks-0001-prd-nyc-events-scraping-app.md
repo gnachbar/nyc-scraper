@@ -48,7 +48,7 @@
   - [x] 4.2 Create Prospect Park events scraper (https://www.prospectpark.org/events/)
   - [x] 4.3 Create MSG Calendar scraper (https://www.msg.com/calendar?venues=KovZpZA7AAEA)
   - [x] 4.4 Test each scraper individually
-- [ ] 5.0 Scraper Testing & Reporting
+- [x] 5.0 Scraper Testing & Reporting
   - [x] 5.1 Create scraper test framework (src/test_scrapers.py)
   - [x] 5.2 Implement run comparison logic (current vs previous run)
   - [x] 5.3 Add removed events detection and reporting
