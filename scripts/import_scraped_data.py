@@ -1,0 +1,304 @@
+#!/usr/bin/env python3
+"""
+Data import script for NYC Events Scraper
+
+This script imports JSON/CSV files from scrapers into the raw_events table,
+tracking each import with a ScrapeRun record.
+"""
+
+import json
+import argparse
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Optional, Dict, Any, List
+
+# Add parent directory to path to import our modules
+sys.path.append(str(Path(__file__).parent.parent))
+
+from models import ScrapeRun, RawEvent, SessionLocal
+from logger import get_logger
+
+logger = get_logger('import_scraped_data')
+
+
+def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optional[datetime]:
+    """
+    Parse event date and time strings into a datetime object.
+    Handles various formats from different scrapers.
+    """
+    if not date_str:
+        return None
+    
+    try:
+        # Handle special cases first
+        if ' - ' in date_str and ('am' in date_str.lower() or 'pm' in date_str.lower()):
+            # Format: "October 25, 8:00 am - 4:00 pm" - extract just the date part
+            parts = date_str.split(',')
+            if len(parts) >= 2:
+                date_str = parts[0].strip()  # "October 25"
+        elif ' - ' in date_str and len(date_str.split(' - ')) == 2:
+            # Format: "April 22, 2025 - May 1, 2026" - take start date
+            date_str = date_str.split(' - ')[0].strip()
+        
+        # Common date formats from scrapers
+        date_formats = [
+            '%B %d, %Y',           # October 25, 2025
+            '%Y-%m-%d',           # 2025-10-25
+            '%m/%d/%Y',           # 10/25/2025
+            '%d/%m/%Y',           # 25/10/2025
+            '%B %d',              # October 25 (current year)
+            '%A, %B %d',         # SATURDAY, OCTOBER 25
+            '%A, %B %d, %Y',     # SATURDAY, OCTOBER 25, 2025
+        ]
+        
+        parsed_date = None
+        for fmt in date_formats:
+            try:
+                parsed_date = datetime.strptime(date_str.strip(), fmt)
+                break
+            except ValueError:
+                continue
+        
+        if not parsed_date:
+            logger.warning(f"Could not parse date: {date_str}")
+            return None
+        
+        # If no year specified, assume current year
+        if parsed_date.year == 1900:
+            parsed_date = parsed_date.replace(year=datetime.now().year)
+        
+        # Add time if provided
+        if time_str:
+            try:
+                # Common time formats
+                time_formats = [
+                    '%I:%M%p',         # 7:00PM (no space)
+                    '%I:%M %p',        # 8:00 AM
+                    '%H:%M',           # 08:00
+                    '%I:%M %p - %I:%M %p',  # 8:00 AM - 4:00 PM (take start time)
+                ]
+                
+                for fmt in time_formats:
+                    try:
+                        if ' - ' in time_str:
+                            # Handle time ranges - take the start time
+                            start_time_str = time_str.split(' - ')[0].strip()
+                            time_obj = datetime.strptime(start_time_str, fmt.replace(' - %I:%M %p', ''))
+                        else:
+                            time_obj = datetime.strptime(time_str.strip(), fmt)
+                        
+                        parsed_date = parsed_date.replace(
+                            hour=time_obj.hour,
+                            minute=time_obj.minute,
+                            second=0,
+                            microsecond=0
+                        )
+                        break
+                    except ValueError:
+                        continue
+            except Exception as e:
+                logger.warning(f"Could not parse time '{time_str}' for date '{date_str}': {e}")
+        
+        return parsed_date
+        
+    except Exception as e:
+        logger.warning(f"Error parsing datetime '{date_str}' + '{time_str}': {e}")
+        return None
+
+
+def extract_source_id(url: str) -> str:
+    """
+    Extract unique identifier from event URL.
+    Handle different URL patterns per source.
+    """
+    if not url:
+        return ""
+    
+    try:
+        # Extract ID from URL patterns
+        if '/event/' in url:
+            # Pattern: https://site.com/event/event-name/2025-10-25/
+            parts = url.split('/event/')
+            if len(parts) > 1:
+                event_part = parts[1].split('/')[0]
+                return event_part
+        
+        # Fallback: use full URL as ID
+        return url
+        
+    except Exception as e:
+        logger.warning(f"Error extracting source ID from URL '{url}': {e}")
+        return url
+
+
+def create_scrape_run(session, source: str) -> int:
+    """
+    Create new ScrapeRun record with status='running'.
+    Return scrape_run_id for linking events.
+    """
+    try:
+        scrape_run = ScrapeRun(
+            source=source,
+            status='running',
+            started_at=datetime.utcnow()
+        )
+        session.add(scrape_run)
+        session.commit()
+        
+        logger.info(f"Created ScrapeRun {scrape_run.id} for source '{source}'")
+        return scrape_run.id
+        
+    except Exception as e:
+        logger.error(f"Error creating scrape run: {e}")
+        session.rollback()
+        raise
+
+
+def complete_scrape_run(session, scrape_run_id: int, events_count: int, error: Optional[str] = None):
+    """
+    Update ScrapeRun with completion status.
+    """
+    try:
+        scrape_run = session.query(ScrapeRun).filter(ScrapeRun.id == scrape_run_id).first()
+        if scrape_run:
+            scrape_run.completed_at = datetime.utcnow()
+            scrape_run.events_scraped = events_count
+            scrape_run.status = 'failed' if error else 'completed'
+            if error:
+                scrape_run.error_message = error
+            
+            session.commit()
+            logger.info(f"Updated ScrapeRun {scrape_run_id}: {scrape_run.status}, {events_count} events")
+        else:
+            logger.error(f"ScrapeRun {scrape_run_id} not found")
+            
+    except Exception as e:
+        logger.error(f"Error updating scrape run {scrape_run_id}: {e}")
+        session.rollback()
+        raise
+
+
+def import_events(session, source: str, file_path: str, scrape_run_id: int) -> int:
+    """
+    Read JSON file from scraper output and import events.
+    """
+    try:
+        # Read JSON file
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # Handle different JSON structures
+        if isinstance(data, list):
+            events = data
+        elif isinstance(data, dict) and 'events' in data:
+            events = data['events']
+        else:
+            logger.error(f"Unexpected JSON structure in {file_path}")
+            return 0
+        
+        imported_count = 0
+        
+        for event_data in events:
+            try:
+                # Map scraper fields to RawEvent fields
+                title = event_data.get('eventName', '')
+                event_date = event_data.get('eventDate', '')
+                event_time = event_data.get('eventTime', '')
+                venue = event_data.get('eventLocation', '')
+                url = event_data.get('eventUrl', '')
+                
+                # Parse datetime
+                start_time = parse_event_datetime(event_date, event_time)
+                
+                # Extract source ID
+                source_id = extract_source_id(url)
+                
+                # Create RawEvent
+                raw_event = RawEvent(
+                    source=source,
+                    source_id=source_id,
+                    title=title,
+                    start_time=start_time,
+                    venue=venue,
+                    url=url,
+                    raw_data=event_data,
+                    scrape_run_id=scrape_run_id,
+                    scraped_at=datetime.utcnow()
+                )
+                
+                session.add(raw_event)
+                imported_count += 1
+                
+            except Exception as e:
+                logger.warning(f"Error importing event {event_data}: {e}")
+                continue
+        
+        session.commit()
+        logger.info(f"Imported {imported_count} events from {file_path}")
+        return imported_count
+        
+    except Exception as e:
+        logger.error(f"Error importing events from {file_path}: {e}")
+        session.rollback()
+        raise
+
+
+def main():
+    """Main script logic"""
+    parser = argparse.ArgumentParser(description='Import scraped data into raw_events table')
+    parser.add_argument('--source', required=True, help='Source name (kings_theatre, prospect_park, msg_calendar)')
+    parser.add_argument('--file', required=True, help='Path to JSON file to import')
+    
+    args = parser.parse_args()
+    
+    # Validate source
+    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar']
+    if args.source not in valid_sources:
+        logger.error(f"Invalid source '{args.source}'. Must be one of: {valid_sources}")
+        sys.exit(1)
+    
+    # Validate file exists
+    file_path = Path(args.file)
+    if not file_path.exists():
+        logger.error(f"File not found: {args.file}")
+        sys.exit(1)
+    
+    # Create database session
+    session = SessionLocal()
+    
+    try:
+        logger.info(f"Starting import for source '{args.source}' from file '{args.file}'")
+        
+        # Create scrape run
+        scrape_run_id = create_scrape_run(session, args.source)
+        
+        # Import events
+        events_count = import_events(session, args.source, args.file, scrape_run_id)
+        
+        # Complete scrape run
+        complete_scrape_run(session, scrape_run_id, events_count)
+        
+        # Print summary
+        print(f"\n=== Import Summary ===")
+        print(f"Source: {args.source}")
+        print(f"File: {args.file}")
+        print(f"Scrape Run ID: {scrape_run_id}")
+        print(f"Events Imported: {events_count}")
+        print(f"Status: Completed successfully")
+        
+    except Exception as e:
+        logger.error(f"Import failed: {e}")
+        # Try to update scrape run with error
+        try:
+            complete_scrape_run(session, scrape_run_id, 0, str(e))
+        except:
+            pass
+        sys.exit(1)
+        
+    finally:
+        session.close()
+
+
+if __name__ == "__main__":
+    main()

@@ -37,15 +37,18 @@
   - [x] 3.1 Install and configure Browserbase Python SDK
   - [x] 3.2 Create simple Browserbase client wrapper
   - [x] 3.3 Test basic browser session creation
-- [ ] 4.0 Simple Scrapers (3 scrapers)
+- [x] 4.0 Simple Scrapers (3 scrapers)
   - [x] 4.1 Create Kings Theatre scraper (https://www.kingstheatre.com/)
   - [x] 4.2 Create Prospect Park events scraper (https://www.prospectpark.org/events/)
-  - [ ] 4.3 Create Brooklyn Paper events scraper (https://events.brooklynpaper.com/)
-  - [ ] 4.4 Test each scraper individually
+  - [x] 4.3 Create MSG Calendar scraper (https://www.msg.com/calendar?venues=KovZpZA7AAEA)
+  - [x] 4.4 Test each scraper individually
 - [ ] 5.0 Data Processing
-  - [ ] 5.1 Create script to clean and deduplicate data in local database
-  - [ ] 5.2 Ensure all events have start_time (quality control)
-  - [ ] 5.3 Move cleaned data to clean_events table
+  - [ ] 5.1 Add ScrapeRun model to track scraping executions
+  - [ ] 5.2 Update RawEvent model with scrape_run_id foreign key
+  - [ ] 5.3 Create data import script to load JSON/CSV into raw_events
+  - [ ] 5.4 Create data cleaning script with deduplication logic
+  - [ ] 5.5 Ensure all events have start_time (quality control)
+  - [ ] 5.6 Move cleaned data to clean_events table
 - [ ] 6.0 Simple Web Interface
   - [ ] 6.1 Create basic Flask app that reads from clean_events table
   - [ ] 6.2 Build simple HTML template to display events

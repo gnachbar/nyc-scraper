@@ -7,7 +7,10 @@
     "start": "node src/app/main.js",
     "test:kings": "node src/app/test-kings.js",
     "test:kings-links": "node src/app/test-kings-links.js",
+    "test:kings-theatre": "node src/app/test-kings-theatre.js",
     "test:prospect-park": "node src/app/test-prospect-park.js",
+    "test:prospect-park-new": "node src/app/test-prospect-park-new.js",
+    "test:msg-calendar": "node src/app/test-msg-calendar.js",
     "test:browserbase": "node src/app/test-browserbase.js"
   },
   "keywords": ["scraping", "events", "nyc", "browserbase"],

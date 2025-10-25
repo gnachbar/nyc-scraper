@@ -1,5 +1,5 @@
 import { withStagehand } from '../lib/stagehand.js';
-import { scrapeProspectPark } from '../scrapers/prospect_park.js';
+import { scrapeProspectPark } from '../scrapers/prospect_park_new.js';
 import fs from 'fs';
 
 async function testProspectPark() {

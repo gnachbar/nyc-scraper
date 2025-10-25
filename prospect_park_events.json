@@ -1,122 +1,830 @@
 [
   {
-    "venue": "Prospect Park",
-    "event_name": "Prospect Park Wellness Walk",
-    "date": "November 21",
-    "event_time": "10:00 am - 11:00 am",
-    "location": "Points of Interest—Boathouse + Audubon Center",
-    "description": "Join Prospect Park Alliance at the Prospect Park Audubon Center...",
-    "category": "General",
-    "price_info": "Free, RSVP!"
+    "eventName": "Monuments to Motherhood",
+    "eventDate": "April 22, 2025 - May 1, 2026",
+    "eventLocation": "Entrance—Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/monuments-to-motherhood/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Carousel Rides",
-    "date": "November 21",
-    "event_time": "12:00 pm - 5:00 pm",
-    "location": "Carousel",
-    "description": "Enjoy a ride on Prospect Park’s beloved 1912 Carousel. Open...",
-    "category": "General",
-    "price_info": "$3 – $13"
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "October 25, 8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Greenmarket at Grand Army Plaza",
-    "date": "November 22",
-    "event_time": "8:00 am - 4:00 pm",
-    "location": "Grand Army Plaza",
-    "description": "At what other market can you do all your food...",
-    "category": "General",
-    "price_info": "Free"
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "October 25, 10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Introduction to Birdwatching Outings",
-    "date": "November 22",
-    "event_time": "10:00 am - 12:00 pm",
-    "location": "Points of Interest—Boathouse + Audubon Center",
-    "description": "Whether you’re just starting out or have already joined the...",
-    "category": "General",
-    "price_info": "Free"
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 25, 11:00 am - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "October Weekend Nature Exploration",
-    "date": "November 22",
-    "event_time": "10:00 am - 1:00 pm",
-    "location": "Points of Interest—Boathouse + Audubon Center",
-    "description": "Join the Prospect Park Alliance for nature education programs on...",
-    "category": "General",
-    "price_info": "Free"
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "October 25, 12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "November Weekend Nature Exploration",
-    "date": "November 22",
-    "event_time": "10:00 am - 1:00 pm",
-    "location": "Points of Interest—Boathouse + Audubon Center",
-    "description": "Join Prospect Park Alliance for nature education programs on Saturdays...",
-    "category": "General",
-    "price_info": "Free"
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "October 25, 12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Spooktober! At Prospect Park Zoo",
-    "date": "November 22",
-    "event_time": "10:00 am - 5:30 pm",
-    "location": "Points of Interest—Prospect Park Zoo",
-    "description": "Go batty every weekend in October at the Prospect Park...",
-    "category": "General",
-    "price_info": "$3 – $12"
+    "eventName": "Pop Up Audubon: Fall Conservation Action",
+    "eventDate": "October 25, 12:00 pm - 4:00 pm",
+    "eventLocation": "Concert Grove Pavilion",
+    "eventUrl": "https://www.prospectpark.org/event/popupaudubon/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Prospect Park Tours with Turnstile Tours",
-    "date": "November 22",
-    "event_time": "10:30 am - 12:30 pm",
-    "location": "Prospect Park",
-    "description": "Discover hidden treasures, natural wonders and little-known tales on interactive...",
-    "category": "General",
-    "price_info": "Prices Vary, Registration Required"
+    "eventName": "Pop Up Audubon: Tree Appreciation Month",
+    "eventDate": "October 25, 12:00 pm - 4:00 pm",
+    "eventLocation": "Nethermead Arches",
+    "eventUrl": "https://www.prospectpark.org/event/pop-up-audubon-tree-appreciation-month/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Voices of Lunáapeew/Lenape",
-    "date": "November 22",
-    "event_time": "12:00 pm - 4:00 pm",
-    "location": "Lefferts Historic House",
-    "description": "View the video exhibit presented by Prospect Park Alliance and...",
-    "category": "General",
-    "price_info": "Free"
+    "eventName": "Carousel Rides",
+    "eventDate": "October 25, 12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/carousel-rides-8/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "ReImagine Lefferts Open Hours",
-    "date": "November 22",
-    "event_time": "12:00 pm - 4:00 pm",
-    "location": "Lefferts Historic House",
-    "description": "Visit the Lefferts Historic House for family friendly outdoor and...",
-    "category": "General",
-    "price_info": "Free"
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 25, 12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-25/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Carousel Rides",
-    "date": "November 22",
-    "event_time": "12:00 pm - 5:00 pm",
-    "location": "Carousel",
-    "description": "Enjoy a ride on Prospect Park’s beloved 1912 Carousel. Open...",
-    "category": "General",
-    "price_info": "$3 – $13"
+    "eventName": "Sunday Greenmarket at Bartel-Pritchard Square",
+    "eventDate": "October 26, 9:00 am - 2:00 pm",
+    "eventLocation": "Bartel-Pritchard Square",
+    "eventUrl": "https://www.prospectpark.org/event/sunday-greenmarket-at-bartel-pritchard-square-3/2025-10-26/"
   },
   {
-    "venue": "Prospect Park",
-    "event_name": "Sunday Greenmarket at Bartel-Pritchard Square",
-    "date": "November 23",
-    "event_time": "9:00 am - 2:00 pm",
-    "location": "Bartel-Pritchard Square",
-    "description": "Nestled inside Prospect Park's tree-shaded southwest corner, this much-loved market...",
-    "category": "General",
-    "price_info": "Free"
+    "eventName": "Cancelled: October Weekend Nature Exploration",
+    "eventDate": "October 26, 10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration-4/"
+  },
+  {
+    "eventName": "Brooklyn FAM Festival!",
+    "eventDate": "October 26",
+    "eventTime": "10:00 am - 3:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/brooklyn-fam-festival/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "October 26",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-10-26/"
+  },
+  {
+    "eventName": "Park Pitch In: World Sustainability Day",
+    "eventDate": "October 26",
+    "eventTime": "11:00 am - 2:00 pm",
+    "eventLocation": "Entrance–Willink",
+    "eventUrl": "https://www.prospectpark.org/event/park-pitch-in-world-sustainability-day-2/"
+  },
+  {
+    "eventName": "Smorgasburg",
+    "eventDate": "October 26",
+    "eventTime": "11:00 am - 6:00 pm",
+    "eventLocation": "Breeze Hill",
+    "eventUrl": "https://www.prospectpark.org/event/smorgasburg-3/2025-10-26/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 26",
+    "eventTime": "11:00 am - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-26/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "October 26",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-10-26/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "October 26",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-10-26/"
+  },
+  {
+    "eventName": "Pop Up Audubon: Fall Conservation Action",
+    "eventDate": "October 26",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Concert Grove Pavilion",
+    "eventUrl": "https://www.prospectpark.org/event/popupaudubon/2025-10-26/"
+  },
+  {
+    "eventName": "Pop Up Audubon: Tree Appreciation Month",
+    "eventDate": "October 26",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Nethermead Arches",
+    "eventUrl": "https://www.prospectpark.org/event/pop-up-audubon-tree-appreciation-month/2025-10-26/"
+  },
+  {
+    "eventName": "Carousel Rides",
+    "eventDate": "October 26",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/carousel-rides-8/2025-10-26/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 26",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-26/"
+  },
+  {
+    "eventName": "Prospect Park Tennis Center Open House",
+    "eventDate": "October 26",
+    "eventTime": "1:00 pm - 3:00 pm",
+    "eventLocation": "Points of Interest—Tennis Center",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tennis-center-open-house/"
+  },
+  {
+    "eventName": "Cancelled: Legend of Sleepy Hollow",
+    "eventDate": "October 26",
+    "eventTime": "2:00 pm - 5:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/legend-of-sleepy-hollow/"
+  },
+  {
+    "eventName": "Sexual Health Mobile Medical Unit",
+    "eventDate": "October 27",
+    "eventTime": "10:00 am - 3:00 pm",
+    "eventLocation": "Entrance—Parkside + Ocean Avenues",
+    "eventUrl": "https://www.prospectpark.org/event/sexual-health-mobile-medical-unit-2/2025-10-27/"
+  },
+  {
+    "eventName": "Wednesday Greenmarket at Bartel-Pritchard Square",
+    "eventDate": "October 29",
+    "eventTime": "8:00 am - 2:00 pm",
+    "eventLocation": "Bartel-Pritchard Square",
+    "eventUrl": "https://www.prospectpark.org/event/wednesday-greenmarket-at-bartel-pritchard-square/2025-10-29/"
+  },
+  {
+    "eventName": "Prospect Park Stroller Walk",
+    "eventDate": "October 30",
+    "eventTime": "10:00 am - 11:00 am",
+    "eventLocation": "Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-stroller-walk-4/2025-10-30/"
+  },
+  {
+    "eventName": "Fall Fix Up",
+    "eventDate": "October 30",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/fall-fix-up-4/2025-10-30/"
+  },
+  {
+    "eventName": "Sexual Health Mobile Medical Unit",
+    "eventDate": "October 30",
+    "eventTime": "10:00 am - 3:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/sexual-health-mobile-medical-unit/2025-10-30/"
+  },
+  {
+    "eventName": "Canceled: October Weekday Nature Exploration",
+    "eventDate": "October 30",
+    "eventTime": "10:00 am - 3:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekday-nature-exploration/2025-10-30/"
+  },
+  {
+    "eventName": "Carousel Rides",
+    "eventDate": "October 30",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/carousel-rides-8/2025-10-30/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 30",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-30/"
+  },
+  {
+    "eventName": "Prospect Park Wellness Walk",
+    "eventDate": "October 31",
+    "eventTime": "10:00 am - 11:00 am",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-wellness-walk-4/2025-10-31/"
+  },
+  {
+    "eventName": "Canceled: October Weekday Nature Exploration",
+    "eventDate": "October 31",
+    "eventTime": "10:00 am - 3:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekday-nature-exploration/2025-10-31/"
+  },
+  {
+    "eventName": "Carousel Rides",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/carousel-rides-8/2025-10-31/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-31/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 31",
+    "eventTime": "3:00 pm - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-31/"
+  },
+  {
+    "eventName": "FIDO Coffee Bark",
+    "eventDate": "November 1",
+    "eventTime": "7:30 am - 8:30 am",
+    "eventLocation": "Long Meadow",
+    "eventUrl": "https://www.prospectpark.org/event/fido-coffee-bark-2/2025-11-01/"
+  },
+  {
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "November 1",
+    "eventTime": "8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-11-01/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "November 1",
+    "eventTime": "9:00 am - 8:50 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside-2/2025-11-01/"
+  },
+  {
+    "eventName": "Introduction to Birdwatching Outings",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 12:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/introduction-to-birdwatching-outings-3/2025-11-01/"
+  },
+  {
+    "eventName": "October Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "November Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/november-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-11-01/"
+  },
+  {
+    "eventName": "Prospect Park Tours with Turnstile Tours",
+    "eventDate": "November 1",
+    "eventTime": "10:30 am - 12:30 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tours-with-turnstile-tours-4/2025-11-01/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-11-01/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-11-01/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-31/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 31",
+    "eventTime": "3:00 pm - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-31/"
+  },
+  {
+    "eventName": "FIDO Coffee Bark",
+    "eventDate": "November 1",
+    "eventTime": "7:30 am - 8:30 am",
+    "eventLocation": "Long Meadow",
+    "eventUrl": "https://www.prospectpark.org/event/fido-coffee-bark-2/2025-11-01/"
+  },
+  {
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "November 1",
+    "eventTime": "8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-11-01/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "November 1",
+    "eventTime": "9:00 am - 8:50 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside-2/2025-11-01/"
+  },
+  {
+    "eventName": "Introduction to Birdwatching Outings",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 12:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/introduction-to-birdwatching-outings-3/2025-11-01/"
+  },
+  {
+    "eventName": "October Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "November Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/november-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-11-01/"
+  },
+  {
+    "eventName": "Prospect Park Tours with Turnstile Tours",
+    "eventDate": "November 1",
+    "eventTime": "10:30 am - 12:30 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tours-with-turnstile-tours-4/2025-11-01/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-11-01/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-11-01/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-31/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 31",
+    "eventTime": "3:00 pm - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-31/"
+  },
+  {
+    "eventName": "FIDO Coffee Bark",
+    "eventDate": "November 1",
+    "eventTime": "7:30 am - 8:30 am",
+    "eventLocation": "Long Meadow",
+    "eventUrl": "https://www.prospectpark.org/event/fido-coffee-bark-2/2025-11-01/"
+  },
+  {
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "November 1",
+    "eventTime": "8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-11-01/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "November 1",
+    "eventTime": "9:00 am - 8:50 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside-2/2025-11-01/"
+  },
+  {
+    "eventName": "Introduction to Birdwatching Outings",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 12:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/introduction-to-birdwatching-outings-3/2025-11-01/"
+  },
+  {
+    "eventName": "October Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "November Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/november-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-11-01/"
+  },
+  {
+    "eventName": "Prospect Park Tours with Turnstile Tours",
+    "eventDate": "November 1",
+    "eventTime": "10:30 am - 12:30 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tours-with-turnstile-tours-4/2025-11-01/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-11-01/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-11-01/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-31/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 31",
+    "eventTime": "3:00 pm - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-31/"
+  },
+  {
+    "eventName": "FIDO Coffee Bark",
+    "eventDate": "November 1",
+    "eventTime": "7:30 am - 8:30 am",
+    "eventLocation": "Long Meadow",
+    "eventUrl": "https://www.prospectpark.org/event/fido-coffee-bark-2/2025-11-01/"
+  },
+  {
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "November 1",
+    "eventTime": "8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-11-01/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "November 1",
+    "eventTime": "9:00 am - 8:50 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside-2/2025-11-01/"
+  },
+  {
+    "eventName": "Introduction to Birdwatching Outings",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 12:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/introduction-to-birdwatching-outings-3/2025-11-01/"
+  },
+  {
+    "eventName": "October Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "November Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/november-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-11-01/"
+  },
+  {
+    "eventName": "Prospect Park Tours with Turnstile Tours",
+    "eventDate": "November 1",
+    "eventTime": "10:30 am - 12:30 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tours-with-turnstile-tours-4/2025-11-01/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-11-01/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-11-01/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-31/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 31",
+    "eventTime": "3:00 pm - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-31/"
+  },
+  {
+    "eventName": "FIDO Coffee Bark",
+    "eventDate": "November 1",
+    "eventTime": "7:30 am - 8:30 am",
+    "eventLocation": "Long Meadow",
+    "eventUrl": "https://www.prospectpark.org/event/fido-coffee-bark-2/2025-11-01/"
+  },
+  {
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "November 1",
+    "eventTime": "8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-11-01/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "November 1",
+    "eventTime": "9:00 am - 8:50 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside-2/2025-11-01/"
+  },
+  {
+    "eventName": "Introduction to Birdwatching Outings",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 12:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/introduction-to-birdwatching-outings-3/2025-11-01/"
+  },
+  {
+    "eventName": "October Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "November Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/november-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-11-01/"
+  },
+  {
+    "eventName": "Prospect Park Tours with Turnstile Tours",
+    "eventDate": "November 1",
+    "eventTime": "10:30 am - 12:30 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tours-with-turnstile-tours-4/2025-11-01/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-11-01/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-11-01/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-31/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 31",
+    "eventTime": "3:00 pm - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-31/"
+  },
+  {
+    "eventName": "FIDO Coffee Bark",
+    "eventDate": "November 1",
+    "eventTime": "7:30 am - 8:30 am",
+    "eventLocation": "Long Meadow",
+    "eventUrl": "https://www.prospectpark.org/event/fido-coffee-bark-2/2025-11-01/"
+  },
+  {
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "November 1",
+    "eventTime": "8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-11-01/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "November 1",
+    "eventTime": "9:00 am - 8:50 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside-2/2025-11-01/"
+  },
+  {
+    "eventName": "Introduction to Birdwatching Outings",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 12:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/introduction-to-birdwatching-outings-3/2025-11-01/"
+  },
+  {
+    "eventName": "October Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "November Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/november-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-11-01/"
+  },
+  {
+    "eventName": "Prospect Park Tours with Turnstile Tours",
+    "eventDate": "November 1",
+    "eventTime": "10:30 am - 12:30 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tours-with-turnstile-tours-4/2025-11-01/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-11-01/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-11-01/"
+  },
+  {
+    "eventName": "Haunted Carousel",
+    "eventDate": "October 31",
+    "eventTime": "12:00 pm - 5:00 pm",
+    "eventLocation": "Carousel",
+    "eventUrl": "https://www.prospectpark.org/event/haunted-carousel-3/2025-10-31/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "October 31",
+    "eventTime": "3:00 pm - 6:00 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside/2025-10-31/"
+  },
+  {
+    "eventName": "FIDO Coffee Bark",
+    "eventDate": "November 1",
+    "eventTime": "7:30 am - 8:30 am",
+    "eventLocation": "Long Meadow",
+    "eventUrl": "https://www.prospectpark.org/event/fido-coffee-bark-2/2025-11-01/"
+  },
+  {
+    "eventName": "Greenmarket at Grand Army Plaza",
+    "eventDate": "November 1",
+    "eventTime": "8:00 am - 4:00 pm",
+    "eventLocation": "Grand Army Plaza",
+    "eventUrl": "https://www.prospectpark.org/event/greenmarket-at-grand-army-plaza-2/2025-11-01/"
+  },
+  {
+    "eventName": "Harvest Fest + First Skate Weekend at Lakeside!",
+    "eventDate": "November 1",
+    "eventTime": "9:00 am - 8:50 pm",
+    "eventLocation": "Points of Interest—LeFrak Center at Lakeside",
+    "eventUrl": "https://www.prospectpark.org/event/harvest-fest-first-skate-weekend-at-lakeside-2/2025-11-01/"
+  },
+  {
+    "eventName": "Introduction to Birdwatching Outings",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 12:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/introduction-to-birdwatching-outings-3/2025-11-01/"
+  },
+  {
+    "eventName": "October Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/october-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "November Weekend Nature Exploration",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 1:00 pm",
+    "eventLocation": "Points of Interest—Boathouse + Audubon Center",
+    "eventUrl": "https://www.prospectpark.org/event/november-weekend-nature-exploration/2025-11-01/"
+  },
+  {
+    "eventName": "Spooktober! At Prospect Park Zoo",
+    "eventDate": "November 1",
+    "eventTime": "10:00 am - 5:30 pm",
+    "eventLocation": "Points of Interest—Prospect Park Zoo",
+    "eventUrl": "https://www.prospectpark.org/event/spooktober-at-prospect-park-zoo/2025-11-01/"
+  },
+  {
+    "eventName": "Prospect Park Tours with Turnstile Tours",
+    "eventDate": "November 1",
+    "eventTime": "10:30 am - 12:30 pm",
+    "eventLocation": "Prospect Park",
+    "eventUrl": "https://www.prospectpark.org/event/prospect-park-tours-with-turnstile-tours-4/2025-11-01/"
+  },
+  {
+    "eventName": "Voices of Lunáapeew/Lenape",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/voices-of-lunaapeew-lenape-2/2025-11-01/"
+  },
+  {
+    "eventName": "ReImagine Lefferts Open Hours",
+    "eventDate": "November 1",
+    "eventTime": "12:00 pm - 4:00 pm",
+    "eventLocation": "Lefferts Historic House",
+    "eventUrl": "https://www.prospectpark.org/event/reimagine-lefferts-open-hours-9-3/2025-11-01/"
   }
 ]
