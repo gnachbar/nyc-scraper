@@ -98,7 +98,7 @@ export async function scrapeMSGCalendar() {
     let result;
     try {
       result = await page.extract({
-        instruction: "Extract all visible events from the MSG calendar. For each event card or event listing, extract: 1) The event name (as eventName), 2) The date it's happening (as eventDate), 3) The time shown on the event listing if visible (as eventTime - format like '7:00 PM', '8pm', etc.), 4) The URL by clicking on the event name or 'View Event Details' button (as eventUrl), 5) Set eventLocation to 'Madison Square Garden' for all events. Look carefully for time information - it might be displayed near the date or in the event details. If no time is visible on the page, return an empty string for eventTime.",
+        instruction: "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), and the URL (as eventUrl) by clicking on the 'View Event Details' button or similar link to get the event page URL",
         schema: StandardEventSchema
       });
     } catch (extractError) {
