@@ -82,22 +82,30 @@ def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optio
                 clean_time_str = re.sub(r'\s+(ET|PT|EST|PST|CST|MST)$', '', clean_time_str, flags=re.IGNORECASE)
                 clean_time_str = clean_time_str.strip()  # Remove any extra whitespace
                 
+                # Handle time ranges (em dash, regular dash, or spaced dash)
+                # Common patterns: "2–4 pm", "10:30 am–5:30 pm", "11 am–12:30 pm"
+                if any(char in clean_time_str for char in ['–', '-']) and ('am' in clean_time_str.lower() or 'pm' in clean_time_str.lower()):
+                    # Extract start time from range
+                    for dash_char in ['–', '-']:
+                        if dash_char in clean_time_str:
+                            start_time_str = clean_time_str.split(dash_char)[0].strip()
+                            break
+                    else:
+                        start_time_str = clean_time_str
+                else:
+                    start_time_str = clean_time_str
+                
                 # Common time formats
                 time_formats = [
-                    '%I:%M%p',         # 7:00PM (no space)
                     '%I:%M %p',        # 8:00 AM
+                    '%I %p',            # 8 AM
+                    '%I:%M%p',         # 7:00PM (no space)
                     '%H:%M',           # 08:00
-                    '%I:%M %p - %I:%M %p',  # 8:00 AM - 4:00 PM (take start time)
                 ]
                 
                 for fmt in time_formats:
                     try:
-                        if ' - ' in clean_time_str:
-                            # Handle time ranges - take the start time
-                            start_time_str = clean_time_str.split(' - ')[0].strip()
-                            time_obj = datetime.strptime(start_time_str, fmt.replace(' - %I:%M %p', ''))
-                        else:
-                            time_obj = datetime.strptime(clean_time_str, fmt)
+                        time_obj = datetime.strptime(start_time_str, fmt)
                         
                         parsed_date = parsed_date.replace(
                             hour=time_obj.hour,
