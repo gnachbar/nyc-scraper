@@ -134,10 +134,10 @@
   - [x] 15.1 Debug schema validation error in Brooklyn Museum scraper - COMPLETED: Fixed extraction instruction to explicitly extract actual href attribute values from link elements instead of constructing URLs from event names. Scraper now successfully extracts 48 events.
   - [x] 15.2 Test Brooklyn Museum scraper end-to-end after fix - COMPLETED: Ran scraper successfully. 48 raw events → 37 clean events (11 duplicates removed). No quality issues.
   - [x] 15.3 Verify Brooklyn Museum events appear in clean_events table - COMPLETED: 37 clean events successfully added to clean_events table.
-- [ ] 16.0 Fix Brooklyn Museum Time Extraction
-  - [ ] 16.1 Debug brooklyn_museum scraper - investigate why all times are showing as midnight
-  - [ ] 16.2 Fix time extraction logic for Brooklyn Museum events
-  - [ ] 16.3 Verify Brooklyn Museum events have proper times (not midnight)
+- [x] 16.0 Fix Brooklyn Museum Time Extraction
+  - [x] 16.1 Debug brooklyn_museum scraper - investigate why all times are showing as midnight - COMPLETED: Found issue - time parser didn't handle em dash (–) and compact notation. Fixed to extract am/pm from range end.
+  - [x] 16.2 Fix time extraction logic for Brooklyn Museum events - COMPLETED: Updated parse_event_datetime to handle time ranges with em dash and extract am/pm indicator. 
+  - [x] 16.3 Verify Brooklyn Museum events have proper times (not midnight) - COMPLETED: 49 events all have proper times (10:30, 14:00, 11:00, 13:00, 15:00). Zero midnight times.
 - [ ] 17.0 Add Time Regression Checks
   - [ ] 17.1 Add explicit check in scrapers-staging workflow to detect if all events have same time (midnight or otherwise)
   - [ ] 17.2 Add explicit check in run_pipeline.py to detect time regressions
