@@ -130,10 +130,10 @@
   - [ ] 14.4 Create merge logic for duplicate events
   - [ ] 14.5 Generate JSON report of duplicates and merge decisions
   - [ ] 14.6 Add python-Levenshtein dependency
-- [ ] 15.0 Fix Brooklyn Museum Scraper
+- [x] 15.0 Fix Brooklyn Museum Scraper
   - [x] 15.1 Debug schema validation error in Brooklyn Museum scraper - COMPLETED: Fixed extraction instruction to explicitly extract actual href attribute values from link elements instead of constructing URLs from event names. Scraper now successfully extracts 48 events.
-  - [ ] 15.2 Test Brooklyn Museum scraper end-to-end after fix
-  - [ ] 15.3 Verify Brooklyn Museum events appear in clean_events table
+  - [x] 15.2 Test Brooklyn Museum scraper end-to-end after fix - COMPLETED: Ran scraper successfully. 48 raw events → 37 clean events (11 duplicates removed). No quality issues.
+  - [x] 15.3 Verify Brooklyn Museum events appear in clean_events table - COMPLETED: 37 clean events successfully added to clean_events table.
 - [ ] 16.0 Pipeline Run Reports
   - [ ] 16.1 Create comprehensive report file output for each pipeline run
   - [ ] 16.2 Include summary of events scraped, cleaned, and test results
