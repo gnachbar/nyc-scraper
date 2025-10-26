@@ -130,9 +130,18 @@
   - [ ] 14.4 Create merge logic for duplicate events
   - [ ] 14.5 Generate JSON report of duplicates and merge decisions
   - [ ] 14.6 Add python-Levenshtein dependency
-- [ ] 15.0 Enhanced Web Interface Features
-  - [x] 15.1 Implement filtering by date range, venue, category - PARTIAL: Venue filtering implemented with display_venue. Date range and category filtering pending.
-  - [x] 15.2 Add search functionality and pagination - COMPLETED: Pagination implemented. Search functionality pending.
-- [ ] 16.0 Further Extensions
-  - [ ] 16.1 Adding day of week filtering
-  - [ ] 16.2 Identify and tag recurring events (e.g., Prospect Park stroller walks, MSG Knick games, Broadway shows) with a recurring flag and add filter toggle to show/hide them
+- [ ] 15.0 Fix Brooklyn Museum Scraper
+  - [x] 15.1 Debug schema validation error in Brooklyn Museum scraper - COMPLETED: Fixed extraction instruction to explicitly extract actual href attribute values from link elements instead of constructing URLs from event names. Scraper now successfully extracts 48 events.
+  - [ ] 15.2 Test Brooklyn Museum scraper end-to-end after fix
+  - [ ] 15.3 Verify Brooklyn Museum events appear in clean_events table
+- [ ] 16.0 Pipeline Run Reports
+  - [ ] 16.1 Create comprehensive report file output for each pipeline run
+  - [ ] 16.2 Include summary of events scraped, cleaned, and test results
+  - [ ] 16.3 Add HTML report generation for better readability
+  - [ ] 16.4 Archive reports by timestamp in data/output directory
+- [ ] 17.0 Enhanced Web Interface Features
+  - [x] 17.1 Implement filtering by date range, venue, category - PARTIAL: Venue filtering implemented with display_venue. Date range and category filtering pending.
+  - [x] 17.2 Add search functionality and pagination - COMPLETED: Pagination implemented. Search functionality pending.
+- [ ] 18.0 Further Extensions
+  - [ ] 18.1 Adding day of week filtering
+  - [ ] 18.2 Identify and tag recurring events (e.g., Prospect Park stroller walks, MSG Knick games, Broadway shows) with a recurring flag and add filter toggle to show/hide them
