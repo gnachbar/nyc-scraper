@@ -33,12 +33,12 @@
   - [x] 2.5 Implement `extractEventTimesFromPages(stagehand, events, options)` - Kings Theatre-specific: iterate through event URLs and extract times
   - [x] 2.6 Implement `paginateThroughPages(page, extractFn, maxPages, options)` - Prospect Park-specific: click "Next" and accumulate results
   - [x] 2.7 Add JSDoc documentation for all functions in scraper-actions.js
-- [ ] 3.0 Create Shared Persistence Module
-  - [ ] 3.1 Create `src/lib/scraper-persistence.js` file
-  - [ ] 3.2 Implement `logScrapingResults(events, sourceName, options)` - Display results summary with time validation warnings
-  - [ ] 3.3 Implement `saveEventsToDatabase(events, sourceName, options)` - Write temp file, call import script, run tests, cleanup temp file
-  - [ ] 3.4 Implement `handleScraperError(error, page, sourceName)` - Standardized error handling with screenshot capture
-  - [ ] 3.5 Add JSDoc documentation for all functions in scraper-persistence.js
+- [x] 3.0 Create Shared Persistence Module
+  - [x] 3.1 Create `src/lib/scraper-persistence.js` file
+  - [x] 3.2 Implement `logScrapingResults(events, sourceName, options)` - Display results summary with time validation warnings
+  - [x] 3.3 Implement `saveEventsToDatabase(events, sourceName, options)` - Write temp file, call import script, run tests, cleanup temp file
+  - [x] 3.4 Implement `handleScraperError(error, page, sourceName)` - Standardized error handling with screenshot capture
+  - [x] 3.5 Add JSDoc documentation for all functions in scraper-persistence.js
 - [ ] 4.0 Refactor Existing Scrapers to Use Shared Functions
   - [ ] 4.1 Refactor `kings_theatre.js` - Replace duplicate code with shared function calls, keep unique time extraction logic
   - [ ] 4.2 Refactor `msg_calendar.js` - Replace duplicate code with shared function calls, keep unique "Load More Events" logic
