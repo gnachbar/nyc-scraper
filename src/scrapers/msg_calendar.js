@@ -115,18 +115,10 @@ export async function scrapeMSGCalendar() {
       throw new Error("Extraction returned no events");
     }
 
-    // Add hardcoded venue name to all events and fix URLs
+    // Add hardcoded venue name to all events
     const eventsWithLocation = result.events.map(event => {
-      // Fix URLs that are just IDs (like "0-6615") - convert to full MSG URLs
-      let fullUrl = event.eventUrl;
-      if (event.eventUrl && !event.eventUrl.startsWith('http')) {
-        // If URL is just an ID, skip it - we can't construct a full URL from just an ID
-        fullUrl = '';
-      }
-      
       return {
         ...event,
-        eventUrl: fullUrl,
         eventLocation: "Madison Square Garden" // Hardcoded MSG venue name
       };
     });
