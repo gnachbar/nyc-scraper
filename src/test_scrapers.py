@@ -152,9 +152,15 @@ def compare_scrape_runs(current_run_id: int, previous_run_id: int) -> Dict[str, 
             })
     
     # Validate the comparison makes sense
-    total_events = len(added_events) + len(removed_events) + len(unchanged_events)
-    if total_events != len(current_events):
-        logger.warning(f"Comparison validation failed: {total_events} != {len(current_events)} current events")
+    # Current events = added + unchanged
+    current_total = len(added_events) + len(unchanged_events)
+    # Previous events = removed + unchanged
+    previous_total = len(removed_events) + len(unchanged_events)
+    
+    if current_total != len(current_events):
+        logger.warning(f"Comparison validation failed: current events: {current_total} != {len(current_events)} actual")
+    if previous_total != len(previous_events):
+        logger.warning(f"Comparison validation failed: previous events: {previous_total} != {len(previous_events)} actual")
     
     return {
         'total_current': len(current_events),
@@ -165,7 +171,7 @@ def compare_scrape_runs(current_run_id: int, previous_run_id: int) -> Dict[str, 
         'added_events': added_events,
         'removed_events': removed_events,
         'unchanged_events': unchanged_events,
-        'comparison_valid': total_events == len(current_events)
+        'comparison_valid': current_total == len(current_events) and previous_total == len(previous_events)
     }
 
 
@@ -542,7 +548,7 @@ def main():
     """Main CLI interface for the scraper testing framework."""
     parser = argparse.ArgumentParser(description='Test and report on scraper runs')
     parser.add_argument('--source', required=True, 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum'],
                        help='Source to test')
     parser.add_argument('--run-id', type=int, 
                        help='Specific scrape run ID to test (defaults to latest)')
@@ -552,7 +558,7 @@ def main():
     args = parser.parse_args()
     
     if args.all:
-        sources = ['kings_theatre', 'msg_calendar', 'prospect_park']
+        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum']
         all_passed = True
         
         for source in sources:
