@@ -153,3 +153,5 @@
 - [ ] 20.0 Further Extensions
   - [ ] 20.1 Adding day of week filtering
   - [ ] 20.2 Identify and tag recurring events (e.g., Prospect Park stroller walks, MSG Knick games, Broadway shows) with a recurring flag and add filter toggle to show/hide them
+  - [ ] 20.3 Add visibility into scraper behavior: track number of "load more" clicks and furthest date scraped for each venue
+  - [ ] 20.4 Set Browserbase session timeout to 15 minutes max to prevent runaway scraping sessions

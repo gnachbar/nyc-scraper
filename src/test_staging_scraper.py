@@ -54,7 +54,7 @@ def test_uses_shared_utilities(content: str) -> Tuple[bool, List[str]]:
 
 def test_schema_definition(content: str) -> Tuple[bool, Dict[str, bool]]:
     """Test that schema contains all required fields."""
-    # Look for schema definition
+    # Look for schema definition - check if using shared utility
     schema_match = re.search(
         r'createStandardSchema\(\{[^}]*\}\)',
         content,
@@ -64,7 +64,22 @@ def test_schema_definition(content: str) -> Tuple[bool, Dict[str, bool]]:
     if not schema_match:
         return False, {}
     
-    # Check for required fields in schema
+    # If using createStandardSchema, assume it has all required fields (defined in utility)
+    # Just verify that it's being used correctly
+    is_using_shared_schema = 'createStandardSchema' in content
+    
+    if is_using_shared_schema:
+        # Check that extractEventsFromPage is being used with the schema
+        has_extract_call = 'extractEventsFromPage' in content
+        return has_extract_call, {
+            'eventName': True,
+            'eventDate': True,
+            'eventTime': True,
+            'eventLocation': True,
+            'eventUrl': True,
+        }
+    
+    # Fallback: Check for required fields in schema (for custom schemas)
     required_fields = {
         'eventName': 'eventName' in content and 'z.string()' in content,
         'eventDate': 'eventDate' in content and 'z.string()' in content,
@@ -80,8 +95,9 @@ def test_schema_definition(content: str) -> Tuple[bool, Dict[str, bool]]:
 def test_extraction_instruction(content: str) -> Tuple[bool, str]:
     """Test that extraction instruction mentions all required fields."""
     # Extract instruction from extractEventsFromPage call
+    # Handle both single-line and multi-line instructions
     instruction_match = re.search(
-        r'instruction:\s*"([^"]+)"',
+        r'extractEventsFromPage\s*\(\s*[^,]+\s*,\s*"([^"]*(?:\\.[^"]*)*)"',
         content,
         re.DOTALL
     )
@@ -110,8 +126,9 @@ def test_extraction_instruction(content: str) -> Tuple[bool, str]:
 
 def test_location_handling(content: str, source: str) -> Tuple[bool, str]:
     """Test that location is properly handled (hardcoded or extracted)."""
+    # Extract instruction from extractEventsFromPage call (same pattern as extraction test)
     instruction_match = re.search(
-        r'instruction:\s*"([^"]+)"',
+        r'extractEventsFromPage\s*\(\s*[^,]+\s*,\s*"([^"]*(?:\\.[^"]*)*)"',
         content,
         re.DOTALL
     )

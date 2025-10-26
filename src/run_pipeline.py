@@ -366,7 +366,7 @@ def main():
     """Main orchestration logic"""
     parser = argparse.ArgumentParser(description='Run data pipeline for all scrapers')
     parser.add_argument('--source', 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater'],
                        help='Run specific scraper only (default: all)')
     parser.add_argument('--skip-cleaning', action='store_true',
                        help='Skip cleaning step')
@@ -381,7 +381,7 @@ def main():
     if args.source:
         sources = [args.source]
     else:
-        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum']
+        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater']
     
     # Create output directory if it doesn't exist
     output_dir = Path(args.output_dir)

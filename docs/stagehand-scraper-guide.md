@@ -178,6 +178,22 @@ await saveEventsToDatabase(events, 'source_name');
 
 ---
 
+## Scraper Development Workflow
+
+This project uses a **staging-to-production workflow** for developing new scrapers:
+
+1. **Create scraper** → Save to `src/scrapers-staging/{venue_name}.js`
+2. **Test manually** → `node src/scrapers-staging/{venue_name}.js`
+3. **Validate** → `python src/test_staging_scraper.py {venue_name}`
+4. **Promote** → `python src/promote_scraper.py {venue_name}`
+5. **First production run** → `python src/run_pipeline.py --source {venue_name}`
+6. **Verify data** → Check database tables
+7. **Done!** → Scraper runs automatically with full pipeline
+
+See `src/scrapers-staging/README.md` for detailed workflow instructions.
+
+---
+
 ## Script Generation Guidelines
 
 ### Structure

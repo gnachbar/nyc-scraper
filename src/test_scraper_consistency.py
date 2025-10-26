@@ -11,6 +11,20 @@ Tests that all scrapers follow consistent patterns for:
 import re
 import sys
 from pathlib import Path
+from typing import List
+
+
+def get_production_scrapers() -> List[str]:
+    """Get list of all production scrapers dynamically."""
+    scrapers_dir = Path("src/scrapers")
+    if not scrapers_dir.exists():
+        return []
+    
+    scrapers = []
+    for file in scrapers_dir.glob("*.js"):
+        scrapers.append(file.stem)
+    
+    return sorted(scrapers)
 
 
 def read_scraper_file(source: str) -> str:
@@ -117,13 +131,16 @@ def test_instruction_structure(source: str) -> tuple[bool, list[str]]:
 
 def test_cross_scraper_consistency():
     """Test that all scrapers' instructions follow similar patterns."""
-    sources = ['kings_theatre', 'msg_calendar', 'prospect_park']
+    sources = get_production_scrapers()
     
     # Extract all instructions
     instructions = {}
     for source in sources:
-        content = read_scraper_file(source)
-        instructions[source] = extract_instruction(content).lower()
+        try:
+            content = read_scraper_file(source)
+            instructions[source] = extract_instruction(content).lower()
+        except FileNotFoundError:
+            continue
     
     # Check for common patterns
     common_patterns = [
@@ -205,11 +222,16 @@ def test_hardcoded_location(source: str) -> tuple[bool, str]:
 
 def run_all_tests():
     """Run all consistency tests for all scrapers."""
-    sources = ['kings_theatre', 'msg_calendar', 'prospect_park']
+    sources = get_production_scrapers()
+    
+    if not sources:
+        print("✗ No production scrapers found")
+        return 1
     
     print("=" * 80)
     print("SCRAPER CONSISTENCY TESTS")
     print("=" * 80)
+    print(f"Found {len(sources)} production scrapers: {', '.join(sources)}")
     print()
     
     all_passed = True

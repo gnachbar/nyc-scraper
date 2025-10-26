@@ -548,7 +548,7 @@ def main():
     """Main CLI interface for the scraper testing framework."""
     parser = argparse.ArgumentParser(description='Test and report on scraper runs')
     parser.add_argument('--source', required=True, 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater'],
                        help='Source to test')
     parser.add_argument('--run-id', type=int, 
                        help='Specific scrape run ID to test (defaults to latest)')
@@ -558,7 +558,7 @@ def main():
     args = parser.parse_args()
     
     if args.all:
-        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum']
+        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater']
         all_passed = True
         
         for source in sources:
