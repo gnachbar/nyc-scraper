@@ -25,14 +25,14 @@
   - [x] 1.4 Implement `createStandardSchema(options)` - Generate StandardEventSchema with configurable eventLocation default
   - [x] 1.5 Implement `scrollToBottom(page, waitTime)` - Scroll page to bottom with configurable wait time
   - [x] 1.6 Add JSDoc documentation for all functions in scraper-utils.js
-- [ ] 2.0 Create Shared Action Helpers Module
-  - [ ] 2.1 Create `src/lib/scraper-actions.js` file
-  - [ ] 2.2 Implement `clickButtonUntilGone(page, buttonText, maxClicks, options)` - Generic "load more" button clicking with retry logic and scroll-after-click option
-  - [ ] 2.3 Implement `extractEventsFromPage(page, instruction, schema, options)` - Wrapper for page.extract() with error handling and screenshot on failure
-  - [ ] 2.4 Implement `validateExtractionResult(result, options)` - Check if extraction succeeded, return validation object
-  - [ ] 2.5 Implement `extractEventTimesFromPages(stagehand, events, options)` - Kings Theatre-specific: iterate through event URLs and extract times
-  - [ ] 2.6 Implement `paginateThroughPages(page, extractFn, maxPages, options)` - Prospect Park-specific: click "Next" and accumulate results
-  - [ ] 2.7 Add JSDoc documentation for all functions in scraper-actions.js
+- [x] 2.0 Create Shared Action Helpers Module
+  - [x] 2.1 Create `src/lib/scraper-actions.js` file
+  - [x] 2.2 Implement `clickButtonUntilGone(page, buttonText, maxClicks, options)` - Generic "load more" button clicking with retry logic and scroll-after-click option
+  - [x] 2.3 Implement `extractEventsFromPage(page, instruction, schema, options)` - Wrapper for page.extract() with error handling and screenshot on failure
+  - [x] 2.4 Implement `validateExtractionResult(result, options)` - Check if extraction succeeded, return validation object
+  - [x] 2.5 Implement `extractEventTimesFromPages(stagehand, events, options)` - Kings Theatre-specific: iterate through event URLs and extract times
+  - [x] 2.6 Implement `paginateThroughPages(page, extractFn, maxPages, options)` - Prospect Park-specific: click "Next" and accumulate results
+  - [x] 2.7 Add JSDoc documentation for all functions in scraper-actions.js
 - [ ] 3.0 Create Shared Persistence Module
   - [ ] 3.1 Create `src/lib/scraper-persistence.js` file
   - [ ] 3.2 Implement `logScrapingResults(events, sourceName, options)` - Display results summary with time validation warnings
