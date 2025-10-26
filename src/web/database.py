@@ -2,9 +2,9 @@
 Database setup and connection utilities
 """
 from sqlalchemy import text
-from models import create_tables, drop_tables, engine, SessionLocal
-from config import Config
-from logger import get_logger
+from src.web.models import create_tables, drop_tables, engine, SessionLocal
+from src.config import Config
+from src.logger import get_logger
 
 logger = get_logger('database')
 

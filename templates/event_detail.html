@@ -17,8 +17,8 @@
             <p><strong>End Time:</strong> {{ event.end_time.strftime('%A, %B %d, %Y at %I:%M %p') }}</p>
         {% endif %}
         
-        {% if event.venue %}
-            <p><strong>Venue:</strong> {{ event.venue }}</p>
+        {% if event.display_venue %}
+            <p><strong>Venue:</strong> {{ event.display_venue }}</p>
         {% endif %}
         
         {% if event.location %}

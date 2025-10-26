@@ -17,8 +17,8 @@ from typing import Optional, Dict, Any, List
 # Add parent directory to path to import our modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from models import ScrapeRun, RawEvent, SessionLocal
-from logger import get_logger
+from src.web.models import ScrapeRun, RawEvent, SessionLocal
+from src.logger import get_logger
 
 logger = get_logger('import_scraped_data')
 
@@ -268,7 +268,7 @@ def main():
     args = parser.parse_args()
     
     # Validate source
-    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar']
+    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum']
     if args.source not in valid_sources:
         logger.error(f"Invalid source '{args.source}'. Must be one of: {valid_sources}")
         sys.exit(1)

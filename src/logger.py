@@ -4,7 +4,7 @@ Logging configuration for NYC Events Scraper
 import logging
 import sys
 from datetime import datetime
-from config import Config
+from src.config import Config
 
 def setup_logging():
     """Set up logging configuration"""

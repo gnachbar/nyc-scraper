@@ -1,141 +1,47 @@
-import { Stagehand } from "@browserbasehq/stagehand";
-import { z } from "zod";
+import { initStagehand, openBrowserbaseSession, createStandardSchema } from '../lib/scraper-utils.js';
+import { paginateThroughPages, extractEventsFromPage } from '../lib/scraper-actions.js';
+import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
 
-// Define standardized schema for all scrapers
-const StandardEventSchema = z.object({
-  events: z.array(z.object({
-    eventName: z.string(),
-    eventDate: z.string(),
-    eventTime: z.string().default(""), // Required field, empty string if not found
-    eventLocation: z.string(), // Will extract subvenue from website
-    eventUrl: z.string().url()
-  }))
-});
+// Create standardized schema for Prospect Park events
+const StandardEventSchema = createStandardSchema();
 
 export async function scrapeProspectPark() {
-  const stagehand = new Stagehand({
-    env: "BROWSERBASE",
-    verbose: 1,
-  });
+  const stagehand = await initStagehand({ env: 'BROWSERBASE' });
+  const page = stagehand.page;
 
   try {
-    await stagehand.init();
-    const page = stagehand.page;
-
-    // Auto-Open Browserbase session in default browser
+    // Open the Browserbase session URL in the default browser
     console.log(`Stagehand Session Started`);
     console.log(`Watch live: https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`);
-    
-    // Automatically open the session URL in the browser
-    const { exec } = await import('child_process');
-    const openCommand = process.platform === 'darwin' ? 'open' : 
-                       process.platform === 'win32' ? 'start' : 'xdg-open';
-    
-    exec(`${openCommand} https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`, (error) => {
-      if (error) {
-        console.log('Could not automatically open browser. Please manually open the URL above.');
-      } else {
-        console.log('Opened Browserbase session in your default browser');
-      }
-    });
+    openBrowserbaseSession(stagehand.browserbaseSessionID);
 
     // Step 1: Navigate to the Prospect Park events page
     await page.goto("https://www.prospectpark.org/events/");
     
-    // Step 2: Extract all the information on the screen
-    const allEvents = [];
-    let pageCount = 0;
-    const maxPages = 10;
-
-    while (pageCount < maxPages) {
-      console.log(`Extracting events from page ${pageCount + 1}/${maxPages}...`);
-      
-      const result = await page.extract({
-        instruction: "Extract all visible events on the current page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), subvenue/location (as eventLocation - this is the text below the event name like 'Grand Army Plaza', 'Prospect Park Zoo', etc.), and the URL (as eventUrl) by clicking on the event name to get the event page URL. If no time is visible on the page, return an empty string for eventTime.",
-        schema: StandardEventSchema
-      });
-
-      allEvents.push(...result.events);
-      console.log(`Found ${result.events.length} events on page ${pageCount + 1}`);
-
-      // Step 3: Click "Next events" button
-      try {
-        const [nextEventsAction] = await page.observe("click the 'Next events' button");
-        
-        if (nextEventsAction) {
-          await page.act(nextEventsAction);
-          pageCount++;
-          console.log(`Successfully clicked 'Next events' button (${pageCount}/${maxPages})`);
-          
-          // Wait for new content to load
-          await page.waitForLoadState('domcontentloaded');
-          await page.waitForTimeout(3000); // Increased wait time for content to load
-        } else {
-          console.log("No more 'Next events' button found. All pages processed.");
-          break;
-        }
-      } catch (error) {
-        console.log(`Failed to click 'Next events' button: ${error.message}`);
-        console.log("Continuing to extract from current page...");
-        // Don't break, continue to extract from current page
+    // Step 2: Paginate through pages and extract events
+    const allEvents = await paginateThroughPages(
+      page,
+      async () => {
+        return await extractEventsFromPage(
+          page,
+          "Extract all visible events on the current page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), subvenue/location (as eventLocation - this is the text below the event name like 'Grand Army Plaza', 'Prospect Park Zoo', etc.), and the URL (as eventUrl) by clicking on the event name to get the event page URL. If no time is visible on the page, return an empty string for eventTime.",
+          StandardEventSchema,
+          { sourceName: 'prospect_park' }
+        );
+      },
+      10, // maxPages
+      {
+        nextButtonText: "Next events",
+        pageWaitTime: 3000
       }
-    }
+    );
 
-    console.log(`Total pages processed: ${pageCount}`);
-    console.log(`Total events found: ${allEvents.length}`);
+    // Log results
+    logScrapingResults(allEvents, 'Prospect Park');
     
-    // Count events with and without times
-    const eventsWithTimes = allEvents.filter(e => e.eventTime && e.eventTime.trim() !== '').length;
-    const eventsWithoutTimes = allEvents.length - eventsWithTimes;
-    
-    if (eventsWithoutTimes > 0) {
-      console.log(`⚠ WARNING: ${eventsWithoutTimes}/${allEvents.length} events missing times`);
-    } else {
-      console.log(`✓ All ${allEvents.length} events have times`);
-    }
-
+    // Save to database and run tests
     if (allEvents.length > 0) {
-      console.log("\nFirst few events:");
-      allEvents.slice(0, 5).forEach((event, index) => {
-        console.log(`${index + 1}. ${event.eventName}`);
-        console.log(`   Date: ${event.eventDate}`);
-        console.log(`   Time: ${event.eventTime || 'N/A'}`);
-        console.log(`   Location: ${event.eventLocation}`);
-        console.log(`   URL: ${event.eventUrl}`);
-        console.log('');
-      });
-      
-      // Write events directly to raw_events table
-      console.log("Writing events to database...");
-      const { execSync } = await import('child_process');
-      const fs = await import('fs');
-      const path = await import('path');
-      
-      // Create temporary JSON file for import
-      const tempFile = path.join(process.cwd(), `temp_prospect_${Date.now()}.json`);
-      fs.writeFileSync(tempFile, JSON.stringify({ events: allEvents }, null, 2));
-      
-      try {
-        // Import to database using existing import script
-        execSync(`python3 src/import_scraped_data.py --source prospect_park --file ${tempFile}`, { stdio: 'inherit' });
-        console.log(`Successfully imported ${allEvents.length} events to database`);
-        
-        // Run scraper test to compare with previous run
-        console.log("Running scraper test...");
-        try {
-          execSync(`python3 src/test_scrapers.py --source prospect_park`, { stdio: 'inherit' });
-          console.log("Scraper test completed successfully");
-        } catch (testError) {
-          console.warn("Scraper test failed (non-critical):", testError.message);
-          // Don't throw - test failure shouldn't stop the scraper
-        }
-      } catch (importError) {
-        console.error("Database import failed:", importError);
-        throw importError;
-      } finally {
-        // Clean up temporary file
-        fs.unlinkSync(tempFile);
-      }
+      await saveEventsToDatabase(allEvents, 'prospect_park');
     } else {
       console.log("No events found!");
     }
@@ -143,8 +49,7 @@ export async function scrapeProspectPark() {
     return { events: allEvents };
 
   } catch (error) {
-    console.error("Prospect Park scraping failed:", error);
-    throw error;
+    await handleScraperError(error, page, 'Prospect Park');
   } finally {
     await stagehand.close();
   }
@@ -157,3 +62,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   });
 }
+
+// Export the function for use in other modules
+export default scrapeProspectPark;

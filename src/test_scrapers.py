@@ -20,8 +20,8 @@ from dataclasses import dataclass
 # Add parent directory to path to import our modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from models import ScrapeRun, RawEvent, SessionLocal
-from logger import get_logger
+from src.web.models import ScrapeRun, RawEvent, SessionLocal
+from src.logger import get_logger
 
 logger = get_logger('test_scrapers')
 

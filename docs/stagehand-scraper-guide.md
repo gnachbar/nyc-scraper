@@ -89,107 +89,175 @@ await page.act(action);
 
 ---
 
+## Shared Utilities Architecture
+
+All scrapers use shared utility functions from `src/lib/` to reduce code duplication and ensure consistency. **Always use these shared utilities instead of writing custom code.**
+
+### Utility Modules
+
+#### `src/lib/scraper-utils.js` - Initialization & Schema Creation
+**Purpose:** Initialize Stagehand, create standardized schemas, and handle scrolling.
+
+**Functions:**
+- `initStagehand(options)` - Initialize Stagehand with Browserbase. Returns initialized instance.
+  - `options.env` - Environment ('BROWSERBASE' or 'LOCAL', default: 'BROWSERBASE')
+  - `options.verbose` - Verbosity level (default: 1)
+- `openBrowserbaseSession(sessionId)` - Open Browserbase session URL in default browser
+- `createStandardSchema(options)` - Create standardized event schema with Zod validation
+  - `options.eventLocationDefault` - Default value for eventLocation field (for single-venue scrapers)
+- `scrollToBottom(page, waitTime)` - Scroll page to bottom and wait for content to load
+  - Default wait: 2000ms, minimum enforced
+
+**When to use:** Use `initStagehand()` to start every scraper. Use `createStandardSchema()` with `eventLocationDefault` for single-venue scrapers (MSG, Kings Theatre, Brooklyn Museum). Use regular schema for multi-venue scrapers (Prospect Park).
+
+#### `src/lib/scraper-actions.js` - Page Actions & Extraction
+**Purpose:** Handle button clicking, event extraction, and pagination.
+
+**Functions:**
+- `clickButtonUntilGone(page, buttonText, maxClicks, options)` - Click a button repeatedly until it disappears
+  - `buttonText` - Text or description of button to click
+  - `maxClicks` - Maximum number of clicks to attempt
+  - `options.scrollAfterClick` - Whether to scroll after each click (default: true)
+  - `options.scrollWaitTime` - Time to wait after scrolling (default: 2000ms)
+  - `options.loadWaitTime` - Time to wait for content to load (default: 2000ms)
+- `extractEventsFromPage(page, instruction, schema, options)` - Extract events with error handling
+  - Automatically captures screenshot on failure
+  - Returns extraction result with events array
+- `paginateThroughPages(page, extractFn, maxPages, options)` - Extract events from multiple pages
+  - `extractFn` - Function to extract events from current page
+  - `maxPages` - Maximum number of pages to process
+  - `options.nextButtonText` - Text of next button (default: "Next events")
+  - `options.pageWaitTime` - Time to wait after clicking next (default: 3000ms)
+- `extractEventTimesFromPages(stagehand, events, options)` - Extract times from individual event pages
+  - Used by Kings Theatre scraper for time extraction
+
+**When to use:** Use `clickButtonUntilGone()` for "Load More" or "Show More" buttons. Use `extractEventsFromPage()` for all extractions. Use `paginateThroughPages()` for sites with explicit pagination buttons.
+
+#### `src/lib/scraper-persistence.js` - Logging & Database Operations
+**Purpose:** Log results, save to database, and handle errors.
+
+**Functions:**
+- `logScrapingResults(events, sourceName, options)` - Log scraping results with time validation
+  - Reports events with/without times
+  - Shows first few events as sample
+- `saveEventsToDatabase(events, sourceName, options)` - Save events to database and run tests
+  - Creates temporary JSON file
+  - Calls import script
+  - Runs scraper consistency tests
+  - Cleans up temp file automatically
+- `handleScraperError(error, page, sourceName)` - Handle errors with screenshot capture
+  - Captures screenshot on error
+  - Re-throws error for upstream handling
+
+**When to use:** Always use `logScrapingResults()` before saving. Always use `saveEventsToDatabase()` instead of manual import. Wrap try-catch blocks with `handleScraperError()`.
+
+### Migration Guide: Old Pattern → New Pattern
+
+**Old Pattern (Don't Use):**
+```typescript
+const stagehand = new Stagehand({ env: "BROWSERBASE", verbose: 1 });
+await stagehand.init();
+const page = stagehand.page;
+// ... custom code ...
+const result = await page.extract({ ... });
+// ... manual database save ...
+```
+
+**New Pattern (Use This):**
+```typescript
+import { initStagehand, openBrowserbaseSession, createStandardSchema } from '../lib/scraper-utils.js';
+import { clickButtonUntilGone, extractEventsFromPage } from '../lib/scraper-actions.js';
+import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
+
+const stagehand = await initStagehand({ env: 'BROWSERBASE' });
+const page = stagehand.page;
+openBrowserbaseSession(stagehand.browserbaseSessionID);
+// ... use shared functions ...
+await saveEventsToDatabase(events, 'source_name');
+```
+
+---
+
 ## Script Generation Guidelines
 
 ### Structure
-Every generated script should follow this pattern:
+Every generated script should follow this pattern using shared utilities:
 
 ```typescript
-import { Stagehand } from "@browserbasehq/stagehand";
-import { z } from "zod";
+import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom } from '../lib/scraper-utils.js';
+import { clickButtonUntilGone, extractEventsFromPage } from '../lib/scraper-actions.js';
+import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
 
-// Define standardized schema for all scrapers
-const StandardEventSchema = z.object({
-  events: z.array(z.object({
-    eventName: z.string(),
-    eventDate: z.string(),
-    eventTime: z.string().default(""), // Empty string if not found
-    eventLocation: z.string(), // REQUIRED: Hardcoded venue name OR extracted subvenue
-    eventUrl: z.string().url()
-  }))
-});
+// Create standardized schema with venue default for single-venue scrapers
+const StandardEventSchema = createStandardSchema({ eventLocationDefault: '[VENUE_NAME]' });
 
-async function scrape[SiteName]() {
-  const stagehand = new Stagehand({
-    env: "LOCAL",
-    verbose: 1,
-  });
+export async function scrape[SiteName]() {
+  const stagehand = await initStagehand({ env: 'BROWSERBASE' });
+  const page = stagehand.page;
 
   try {
-    await stagehand.init();
-    const page = stagehand.page;
-
-    // Auto-Open Browserbase session in default browser
+    // Open the Browserbase session URL in the default browser
     console.log(`Stagehand Session Started`);
     console.log(`Watch live: https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`);
-    
-    // Automatically open the session URL in the browser
-    const { exec } = await import('child_process');
-    const openCommand = process.platform === 'darwin' ? 'open' : 
-                       process.platform === 'win32' ? 'start' : 'xdg-open';
-    
-    exec(`${openCommand} https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`, (error) => {
-      if (error) {
-        console.log('Could not automatically open browser. Please manually open the URL above.');
-      } else {
-        console.log('Opened Browserbase session in your default browser');
-      }
-    });
+    openBrowserbaseSession(stagehand.browserbaseSessionID);
 
-    // Implement steps from user's input
-    await page.goto("URL");
+    // Step 1: Navigate to the page
+    await page.goto("[URL]");
+    await page.waitForLoadState('networkidle');
     
-    // Navigation/actions
-    // ...
+    // Step 2: Scroll to bottom (if needed for lazy loading)
+    await scrollToBottom(page);
     
-    // Extract data
-    const result = await page.extract({
-      instruction: "Extract all visible events. For each event, get the event name, date, time (if available), set eventLocation to '[VENUE_NAME]' for all events, and the URL by clicking on the 'View Event Details' button or similar link to get the event page URL",
-      schema: StandardEventSchema
+    // Step 3: Click "Load More" button if needed (use unique logic)
+    await clickButtonUntilGone(page, "[Button Text]", [maxClicks], {
+      scrollAfterClick: true,
+      scrollWaitTime: 2000,
+      loadWaitTime: 2000
     });
+    
+    // Step 4: Extract all visible events
+    const result = await extractEventsFromPage(
+      page,
+      "Extract all visible events. For each event, get the event name, date, time (if available), set eventLocation to '[VENUE_NAME]' for all events, and the URL by clicking on the event link to get the event page URL",
+      StandardEventSchema,
+      { sourceName: '[SOURCE_NAME]' }
+    );
 
-    // Note: If Stagehand fails to extract eventLocation properly, add fallback mapping
+    // Add hardcoded venue name to all events (backup in case schema default fails)
     const eventsWithLocation = result.events.map(event => ({
       ...event,
-      eventLocation: event.eventLocation || "[VENUE_NAME]" // Fallback to hardcoded venue name
+      eventLocation: "[VENUE_NAME]"
     }));
 
-    console.log(JSON.stringify({ events: eventsWithLocation }, null, 2));
+    // Log results
+    logScrapingResults(eventsWithLocation, '[Source Name]');
     
-    // Write events directly to raw_events table
-    console.log("Writing events to database...");
-    const { execSync } = await import('child_process');
-    const fs = await import('fs');
-    const path = await import('path');
-    
-    // Create temporary JSON file for import
-    const tempFile = path.join(process.cwd(), `temp_${Date.now()}.json`);
-    fs.writeFileSync(tempFile, JSON.stringify({ events: eventsWithLocation }, null, 2));
-    
-    try {
-      // Import to database using existing import script
-      const sourceName = "[SOURCE_NAME]"; // Replace with actual source (kings_theatre, msg_calendar, prospect_park)
-      execSync(`python3 src/import_scraped_data.py --source ${sourceName} --file ${tempFile}`, { stdio: 'inherit' });
-      console.log(`Successfully imported ${eventsWithLocation.length} events to database`);
-    } catch (importError) {
-      console.error("Database import failed:", importError);
-      throw importError;
-    } finally {
-      // Clean up temporary file
-      fs.unlinkSync(tempFile);
+    // Save to database and run tests
+    if (eventsWithLocation.length > 0) {
+      await saveEventsToDatabase(eventsWithLocation, '[source_name]');
+    } else {
+      console.log("No events found!");
     }
-    
+
     return { events: eventsWithLocation };
 
   } catch (error) {
-    console.error("Scraping failed:", error);
-    throw error;
+    await handleScraperError(error, page, '[Source Name]');
   } finally {
     await stagehand.close();
   }
 }
 
-scrape[SiteName]();
+// Run the scraper if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  scrape[SiteName]().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}
+
+// Export the function for use in other modules
+export default scrape[SiteName];
 ```
 
 ### Best Practices for Generated Code
@@ -207,39 +275,74 @@ scrape[SiteName]();
 **Simple Single-Page Scrape:**
 ```typescript
 await page.goto(url);
-const data = await page.extract({
-  instruction: "extract all products",
-  schema: DataSchema
-});
+await page.waitForLoadState('networkidle');
+const result = await extractEventsFromPage(
+  page,
+  "Extract all visible events...",
+  StandardEventSchema,
+  { sourceName: 'source_name' }
+);
 ```
 
-**With Navigation:**
+**With "Load More" Button:**
 ```typescript
 await page.goto(url);
-await page.act("click 'Show All' button");
-await page.waitForLoadState('networkidle');
-const data = await page.extract({ ... });
+await scrollToBottom(page);
+await clickButtonUntilGone(page, "Load More Events", 5, {
+  scrollAfterClick: true,
+  scrollWaitTime: 2000,
+  loadWaitTime: 2000
+});
+const result = await extractEventsFromPage(page, instruction, schema, options);
 ```
 
-**Pagination Loop:**
+**Pagination with Explicit "Next" Button:**
 ```typescript
-const allData = [];
-const maxPages = 10;
+const allEvents = await paginateThroughPages(
+  page,
+  async () => {
+    return await extractEventsFromPage(
+      page,
+      "Extract all visible events on the current page...",
+      StandardEventSchema,
+      { sourceName: 'source_name' }
+    );
+  },
+  10, // maxPages
+  {
+    nextButtonText: "Next events",
+    pageWaitTime: 3000
+  }
+);
+```
 
-for (let i = 0; i < maxPages; i++) {
-  const pageData = await page.extract({
-    instruction: "extract items on current page",
-    schema: DataSchema
-  });
+**Real-World Example: MSG Calendar**
+```typescript
+// See src/scrapers/msg_calendar.js for complete working example
+import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom } from '../lib/scraper-utils.js';
+import { clickButtonUntilGone, extractEventsFromPage } from '../lib/scraper-actions.js';
+import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
+
+const StandardEventSchema = createStandardSchema({ eventLocationDefault: 'Madison Square Garden' });
+
+export async function scrapeMSGCalendar() {
+  const stagehand = await initStagehand({ env: 'BROWSERBASE' });
+  const page = stagehand.page;
   
-  allData.push(...pageData.items);
-  
-  // Check if next page exists
   try {
-    await page.act("click next page button");
+    openBrowserbaseSession(stagehand.browserbaseSessionID);
+    await page.goto("https://www.msg.com/calendar?venues=KovZpZA7AAEA");
     await page.waitForLoadState('networkidle');
-  } catch {
-    break; // No more pages
+    await scrollToBottom(page);
+    await clickButtonUntilGone(page, "Load More Events", 3);
+    const result = await extractEventsFromPage(page, instruction, StandardEventSchema, { sourceName: 'msg_calendar' });
+    logScrapingResults(result.events, 'MSG Calendar');
+    await saveEventsToDatabase(result.events, 'msg_calendar');
+    return { events: result.events };
+  } catch (error) {
+    await handleScraperError(error, page, 'MSG Calendar');
+  } finally {
+    await stagehand.close();
   }
 }
 ```

@@ -40,7 +40,7 @@
   - [x] 3.4 Implement `handleScraperError(error, page, sourceName)` - Standardized error handling with screenshot capture
   - [x] 3.5 Add JSDoc documentation for all functions in scraper-persistence.js
 - [ ] 4.0 Refactor Existing Scrapers to Use Shared Functions
-  - [ ] 4.1 Refactor `kings_theatre.js` - Replace duplicate code with shared function calls, keep unique time extraction logic
+  - [x] 4.1 Refactor `kings_theatre.js` - Replace duplicate code with shared function calls, keep unique time extraction logic
   - [ ] 4.2 Refactor `msg_calendar.js` - Replace duplicate code with shared function calls, keep unique "Load More Events" logic
   - [ ] 4.3 Refactor `prospect_park.js` - Replace duplicate code with shared function calls, use `paginateThroughPages()` helper
   - [ ] 4.4 Refactor `brooklyn_museum.js` - Replace duplicate code with shared function calls, keep unique "Show more events" logic

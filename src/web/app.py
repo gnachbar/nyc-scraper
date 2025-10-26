@@ -7,12 +7,14 @@ from sqlalchemy import desc, and_, or_
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
 import os
-from models import CleanEvent, engine, Base
-from config import Config
-from logger import get_logger
+from src.web.models import CleanEvent, engine, Base
+from src.config import Config
+from src.logger import get_logger
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, 
+            template_folder='../../templates',
+            static_folder='../../static')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # Enable CORS for API endpoints
@@ -380,9 +382,4 @@ def internal_error(error):
     return render_template('error.html', error_message="Internal server error"), 500
 
 
-if __name__ == '__main__':
-    # Create tables if they don't exist
-    Base.metadata.create_all(bind=engine)
-    
-    # Run the app
-    app.run(debug=True, host='0.0.0.0', port=5001)
+# Run with: python run_app.py from the root directory
