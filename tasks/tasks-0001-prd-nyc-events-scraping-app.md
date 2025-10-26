@@ -138,10 +138,10 @@
   - [x] 16.1 Debug brooklyn_museum scraper - investigate why all times are showing as midnight - COMPLETED: Found issue - time parser didn't handle em dash (–) and compact notation. Fixed to extract am/pm from range end.
   - [x] 16.2 Fix time extraction logic for Brooklyn Museum events - COMPLETED: Updated parse_event_datetime to handle time ranges with em dash and extract am/pm indicator. 
   - [x] 16.3 Verify Brooklyn Museum events have proper times (not midnight) - COMPLETED: 49 events all have proper times (10:30, 14:00, 11:00, 13:00, 15:00). Zero midnight times.
-- [ ] 17.0 Add Time Regression Checks
-  - [ ] 17.1 Add explicit check in scrapers-staging workflow to detect if all events have same time (midnight or otherwise)
-  - [ ] 17.2 Add explicit check in run_pipeline.py to detect time regressions
-  - [ ] 17.3 Fail pipeline if time regression detected
+- [x] 17.0 Add Time Regression Checks
+  - [x] 17.1 Add explicit check in scrapers-staging workflow to detect if all events have same time (midnight or otherwise)
+  - [x] 17.2 Add explicit check in run_pipeline.py to detect time regressions
+  - [x] 17.3 Fail pipeline if time regression detected
 - [ ] 18.0 Pipeline Run Reports
   - [ ] 18.1 Create comprehensive report file output for each pipeline run
   - [ ] 18.2 Include summary of events scraped, cleaned, and test results
