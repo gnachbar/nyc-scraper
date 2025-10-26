@@ -80,38 +80,59 @@
 - [ ] 8.0 Ensure Consistency & Debugging
   - [x] 8.1 Debug Kings Theater - COMPLETED: Created reusable event time extractor using BeautifulSoup + requests. Successfully extracts times from individual event pages without browser context issues.
   - [x] 8.2 Debug MSG event time start issues - COMPLETED: Fixed MSG scraper extraction instruction to properly extract times from calendar page. Updated import script to handle "ET" timezone suffix. MSG events now extract times correctly (96/96 events with times in test).
-  - [ ] 8.3 Ensure the data cleaning script is running after each scraping session to test for any regressions on things like start time (or lots of events missing between last and current run)
-- [ ] 9.0 GitHub Actions Automation & Scheduled Scraping
-  - [x] 9.1 Create GitHub Actions workflow file (.github/workflows/scrape.yml)
-  - [x] 9.2 Configure cron schedule for weekly scraper runs
-  - [ ] 9.3 Set up GitHub secrets for BROWSERBASE_API_KEY and DATABASE_URL
-  - [x] 9.4 Configure Node.js environment and dependencies
-  - [x] 9.5 Configure Python environment and dependencies
-  - [x] 9.6 Add workflow to run all scrapers sequentially - COMPLETED: Created src/run_pipeline.py orchestration script
-  - [x] 9.7 Add automatic data cleaning after scraper runs - COMPLETED: Pipeline runs cleaning automatically
-  - [x] 9.8 Configure workflow notifications for success/failure - COMPLETED: Report artifacts uploaded
-  - [ ] 9.9 Test workflow with manual trigger
-  - [ ] 9.10 Test complete automation pipeline end-to-end
-- [ ] 10.0 Neon Database Migration
-  - [ ] 10.1 Set up Neon PostgreSQL database
-  - [ ] 10.2 Update config.py for environment-based database URLs
-  - [ ] 10.3 Create migration script (src/migrate_to_neon.py)
-  - [ ] 10.4 Test web app with Neon database
-- [ ] 11.0 Vercel Deployment
-  - [ ] 11.1 Create Vercel configuration (vercel.json)
-  - [ ] 11.2 Create requirements-vercel.txt (web app dependencies only)
-  - [ ] 11.3 Configure environment variables in Vercel
-  - [ ] 11.4 Deploy web app to Vercel
-  - [ ] 11.5 Test complete pipeline with automated deployment
-- [ ] 12.0 Cross-Source Deduplication
-  - [ ] 12.1 Create deduplication script (src/deduplicate_across_sources.py)
-  - [ ] 12.2 Implement fuzzy matching algorithm (85% title similarity)
-  - [ ] 12.3 Add venue normalization for matching
-  - [ ] 12.4 Create merge logic for duplicate events
-  - [ ] 12.5 Generate JSON report of duplicates and merge decisions
-  - [ ] 12.6 Add python-Levenshtein dependency
-- [ ] 13.0 Enhanced Web Interface Features
-  - [x] 13.1 Implement filtering by date range, venue, category - PARTIAL: Venue filtering implemented with display_venue. Date range and category filtering pending.
-  - [x] 13.2 Add search functionality and pagination - COMPLETED: Pagination implemented. Search functionality pending.
-- [ ] 14.0 Further Extensions
-  - [ ] 14.1 Adding day of week filtering
+  - [x] 8.3 Ensure the data cleaning script is running after each scraping session to test for any regressions on things like start time (or lots of events missing between last and current run) - COMPLETED: Verified pipeline runs cleaning and tests automatically after each scraper. Tests detect missing start times, midnight time issues, and large differences in event counts between runs. Updated clean_events.py to include brooklyn_museum in source choices.
+
+--------------------------------------------------------------------------------
+
+- [ ] 9.0 Scraper Refactoring & Testing
+  - [x] 9.1 Refactor `msg_calendar.js` - Replace duplicate code with shared function calls, keep unique "Load More Events" logic
+  - [x] 9.2 Test `msg_calendar.js` refactor - Run end-to-end and verify events are scraped correctly
+  - [x] 9.3 Refactor `prospect_park.js` - Replace duplicate code with shared function calls, use `paginateThroughPages()` helper
+  - [x] 9.4 Test `prospect_park.js` refactor - Run end-to-end and verify events are scraped correctly
+  - [x] 9.5 Refactor `brooklyn_museum.js` - Replace duplicate code with shared function calls, keep unique "Show more events" logic
+  - [x] 9.6 Test `brooklyn_museum.js` refactor - Run end-to-end and verify events are scraped correctly
+  - [ ] 9.7 Verify all scrapers still export their main function and support direct execution
+  - [ ] 9.8 Run full pipeline (`python src/run_pipeline.py`) and verify all scrapers work together
+  - [ ] 9.9 Run scraper consistency tests (`python src/test_scraper_consistency.py`) and verify all pass
+- [ ] 10.0 Documentation Updates
+  - [ ] 10.1 Update `docs/stagehand-scraper-guide.md` to include shared utilities section
+  - [ ] 10.2 Add examples of using shared functions to the guide
+  - [ ] 10.3 Create inline code comments explaining shared function usage in one refactored scraper as a reference
+  - [ ] 10.4 Create tests to ensure all scrapers are using shared utilities and not custom code blocks for initialization, extraction, logging, and database persistence
+  - [ ] 10.5 Commit all changes with descriptive commit messages
+  - [ ] 10.6 Update project README if necessary to mention shared utilities architecture
+- [ ] 11.0 GitHub Actions Automation & Scheduled Scraping
+  - [ ] 11.1 Create GitHub Actions workflow file (.github/workflows/scrape.yml)
+  - [ ] 11.2 Configure cron schedule for weekly scraper runs
+  - [ ] 11.3 Set up GitHub secrets for BROWSERBASE_API_KEY and DATABASE_URL
+  - [ ] 11.4 Configure Node.js environment and dependencies
+  - [ ] 11.5 Configure Python environment and dependencies
+  - [ ] 11.6 Add workflow to run all scrapers sequentially - COMPLETED: Created src/run_pipeline.py orchestration script
+  - [ ] 11.7 Add automatic data cleaning after scraper runs - COMPLETED: Pipeline runs cleaning automatically
+  - [ ] 11.8 Configure workflow notifications for success/failure - COMPLETED: Report artifacts uploaded
+  - [ ] 11.9 Test workflow with manual trigger
+  - [ ] 11.10 Test complete automation pipeline end-to-end
+- [ ] 12.0 Neon Database Migration
+  - [ ] 12.1 Set up Neon PostgreSQL database
+  - [ ] 12.2 Update config.py for environment-based database URLs
+  - [ ] 12.3 Create migration script (src/migrate_to_neon.py)
+  - [ ] 12.4 Test web app with Neon database
+- [ ] 13.0 Vercel Deployment
+  - [ ] 13.1 Create Vercel configuration (vercel.json)
+  - [ ] 13.2 Create requirements-vercel.txt (web app dependencies only)
+  - [ ] 13.3 Configure environment variables in Vercel
+  - [ ] 13.4 Deploy web app to Vercel
+  - [ ] 13.5 Test complete pipeline with automated deployment
+- [ ] 14.0 Cross-Source Deduplication
+  - [ ] 14.1 Create deduplication script (src/deduplicate_across_sources.py)
+  - [ ] 14.2 Implement fuzzy matching algorithm (85% title similarity)
+  - [ ] 14.3 Add venue normalization for matching
+  - [ ] 14.4 Create merge logic for duplicate events
+  - [ ] 14.5 Generate JSON report of duplicates and merge decisions
+  - [ ] 14.6 Add python-Levenshtein dependency
+- [ ] 15.0 Enhanced Web Interface Features
+  - [x] 15.1 Implement filtering by date range, venue, category - PARTIAL: Venue filtering implemented with display_venue. Date range and category filtering pending.
+  - [x] 15.2 Add search functionality and pagination - COMPLETED: Pagination implemented. Search functionality pending.
+- [ ] 16.0 Further Extensions
+  - [ ] 16.1 Adding day of week filtering
+  - [ ] 16.2 Identify and tag recurring events (e.g., Prospect Park stroller walks, MSG Knick games, Broadway shows) with a recurring flag and add filter toggle to show/hide them
