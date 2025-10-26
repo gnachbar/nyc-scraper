@@ -7,6 +7,7 @@ const StandardEventSchema = z.object({
     eventName: z.string(),
     eventDate: z.string(),
     eventTime: z.string().default(""), // Required field, empty string if not found
+    eventLocation: z.string().default("Madison Square Garden"), // Hardcoded for single venue
     eventUrl: z.string().url()
   }))
 });
@@ -98,7 +99,7 @@ export async function scrapeMSGCalendar() {
     let result;
     try {
       result = await page.extract({
-        instruction: "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), and the FULL URL (as eventUrl) from the href attribute of the 'View Event Details' link or the event card link. Extract the complete URL starting with https://www.msg.com/events-tickets/",
+        instruction: "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), location (as eventLocation - set to 'Madison Square Garden' for all events), and the FULL URL (as eventUrl) from the href attribute of the 'View Event Details' link or the event card link by clicking on it. Extract the complete URL starting with https://www.msg.com/events-tickets/",
         schema: StandardEventSchema
       });
     } catch (extractError) {
@@ -115,30 +116,22 @@ export async function scrapeMSGCalendar() {
       throw new Error("Extraction returned no events");
     }
 
-    // Add hardcoded venue name to all events
-    const eventsWithLocation = result.events.map(event => {
-      return {
-        ...event,
-        eventLocation: "Madison Square Garden" // Hardcoded MSG venue name
-      };
-    });
-
     console.log("=== MSG Calendar Scraping Results ===");
-    console.log(`Total events found: ${eventsWithLocation.length}`);
+    console.log(`Total events found: ${result.events.length}`);
     
     // Count events with and without times
-    const eventsWithTimes = eventsWithLocation.filter(e => e.eventTime && e.eventTime.trim() !== '').length;
-    const eventsWithoutTimes = eventsWithLocation.length - eventsWithTimes;
+    const eventsWithTimes = result.events.filter(e => e.eventTime && e.eventTime.trim() !== '').length;
+    const eventsWithoutTimes = result.events.length - eventsWithTimes;
     
     if (eventsWithoutTimes > 0) {
-      console.log(`⚠ WARNING: ${eventsWithoutTimes}/${eventsWithLocation.length} events missing times`);
+      console.log(`⚠ WARNING: ${eventsWithoutTimes}/${result.events.length} events missing times`);
     } else {
-      console.log(`✓ All ${eventsWithLocation.length} events have times`);
+      console.log(`✓ All ${result.events.length} events have times`);
     }
     
-    if (eventsWithLocation.length > 0) {
+    if (result.events.length > 0) {
       console.log("\nFirst few events:");
-      eventsWithLocation.slice(0, 5).forEach((event, index) => {
+      result.events.slice(0, 5).forEach((event, index) => {
         console.log(`${index + 1}. ${event.eventName}`);
         console.log(`   Date: ${event.eventDate}`);
         console.log(`   Time: ${event.eventTime || 'N/A'}`);
@@ -155,12 +148,12 @@ export async function scrapeMSGCalendar() {
       
       // Create temporary JSON file for import
       const tempFile = path.join(process.cwd(), `temp_msg_${Date.now()}.json`);
-      fs.writeFileSync(tempFile, JSON.stringify({ events: eventsWithLocation }, null, 2));
+      fs.writeFileSync(tempFile, JSON.stringify({ events: result.events }, null, 2));
       
       try {
         // Import to database using existing import script
         execSync(`python3 src/import_scraped_data.py --source msg_calendar --file ${tempFile}`, { stdio: 'inherit' });
-        console.log(`Successfully imported ${eventsWithLocation.length} events to database`);
+        console.log(`Successfully imported ${result.events.length} events to database`);
         
         // Run scraper test to compare with previous run
         console.log("Running scraper test...");
@@ -182,7 +175,7 @@ export async function scrapeMSGCalendar() {
       console.log("No events found on the page.");
     }
 
-    return { events: eventsWithLocation };
+    return { events: result.events };
 
   } catch (error) {
     console.error("MSG Calendar scraping failed:", error);
