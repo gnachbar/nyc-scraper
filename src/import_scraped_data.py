@@ -88,7 +88,14 @@ def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optio
                     # Extract start time from range
                     for dash_char in ['–', '-']:
                         if dash_char in clean_time_str:
-                            start_time_str = clean_time_str.split(dash_char)[0].strip()
+                            parts = clean_time_str.split(dash_char)
+                            start_time_str = parts[0].strip()
+                            # Extract am/pm from the range end
+                            end_part = parts[1].strip() if len(parts) > 1 else ''
+                            am_pm_match = re.search(r'\b(am|pm)\b', end_part, re.IGNORECASE)
+                            if am_pm_match and 'am' not in start_time_str.lower() and 'pm' not in start_time_str.lower():
+                                # Append am/pm to start time if not already present
+                                start_time_str = f"{start_time_str} {am_pm_match.group(1)}"
                             break
                     else:
                         start_time_str = clean_time_str
