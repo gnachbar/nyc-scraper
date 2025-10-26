@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional
+from collections import Counter
 
 # Add parent directory to path to import our modules
 sys.path.append(str(Path(__file__).parent.parent))
@@ -255,6 +256,65 @@ def run_tests(source: str) -> bool:
         return False
 
 
+def check_time_regression(source: str) -> tuple[bool, str]:
+    """
+    Check for time regressions in cleaned events.
+    
+    Detects if all events have the same start_time (or a large percentage),
+    which would indicate a time extraction bug (e.g., all times defaulting to midnight).
+    
+    Args:
+        source: Source name
+    
+    Returns:
+        Tuple of (success, message) where success=False indicates a regression
+    """
+    try:
+        session = SessionLocal()
+        
+        # Get all clean events for this source
+        events = session.query(CleanEvent).filter(
+            CleanEvent.source == source
+        ).all()
+        
+        if not events:
+            return True, "No clean events found"
+        
+        if len(events) < 2:
+            return True, "Only one event - cannot check for time regression"
+        
+        # Check if all events have the same start_time
+        start_times = [event.start_time for event in events if event.start_time]
+        
+        if not start_times:
+            session.close()
+            return False, "No events have start_time populated"
+        
+        # Count unique start_times
+        unique_times = set(start_times)
+        
+        if len(unique_times) == 1:
+            # All events have the same time - this is a regression!
+            time_str = start_times[0].strftime('%Y-%m-%d %H:%M:%S') if start_times[0] else 'null'
+            session.close()
+            return False, f"All {len(events)} events have identical start_time: {time_str}"
+        
+        # Check if more than 50% of events have the same time (also suspicious)
+        time_counts = Counter(start_times)
+        most_common_time, most_common_count = time_counts.most_common(1)[0]
+        
+        if most_common_count > len(events) * 0.5:
+            time_str = most_common_time.strftime('%Y-%m-%d %H:%M:%S') if most_common_time else 'null'
+            session.close()
+            return False, f"{most_common_count}/{len(events)} events have same start_time: {time_str}"
+        
+        session.close()
+        return True, f"Times are diverse ({len(unique_times)} unique times for {len(events)} events)"
+        
+    except Exception as e:
+        return False, f"Error checking time regression: {e}"
+
+
 def generate_reports(report: PipelineReport, output_dir: Path):
     """
     Generate JSON and console reports.
@@ -346,6 +406,13 @@ def main():
         if result.success and not args.skip_cleaning:
             cleaning_success, events_cleaned = run_cleaning(source)
             result.events_cleaned = events_cleaned
+            
+            # Check for time regressions after cleaning
+            time_check_passed, time_check_msg = check_time_regression(source)
+            if not time_check_passed:
+                logger.error(f"Time regression detected for {source}: {time_check_msg}")
+                # Don't fail the pipeline yet - we'll fail it at the end
+                result.error_message = f"Time regression: {time_check_msg}"
         elif result.success:
             # Query database for cleaned events count
             try:
@@ -370,7 +437,12 @@ def main():
     total_events_cleaned = sum(r.events_cleaned for r in scraper_results)
     successful_scrapers = sum(1 for r in scraper_results if r.success)
     failed_scrapers = len(scraper_results) - successful_scrapers
-    overall_success = failed_scrapers == 0
+    
+    # Check for time regressions in error messages
+    time_regressions = [r for r in scraper_results if r.error_message and 'Time regression' in r.error_message]
+    
+    # Overall success if no failed scrapers AND no time regressions
+    overall_success = failed_scrapers == 0 and len(time_regressions) == 0
     
     # Create report
     report = PipelineReport(
