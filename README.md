@@ -31,13 +31,19 @@ nyc-scraper/
 
 ## Scrapers
 
-Current scrapers are located in `src/scrapers/`:
+### Production Scrapers
+
+Current production scrapers are located in `src/scrapers/`:
 - `kings_theatre.js` - Kings Theatre events
 - `msg_calendar.js` - MSG calendar events  
 - `prospect_park.js` - Prospect Park events
 - `brooklyn_museum.js` - Brooklyn Museum events
 
 All scrapers use a shared utilities architecture to reduce code duplication and ensure consistency.
+
+### Staging Scrapers
+
+Work-in-progress scrapers are located in `src/scrapers-staging/`. See the [scraper development workflow](#creating-new-scrapers) below.
 
 ## Development
 
@@ -61,11 +67,30 @@ This architecture ensures:
 
 ### Creating New Scrapers
 
-To create a new scraper:
-1. Follow the guide in `docs/stagehand-scraper-guide.md`
-2. Use the shared utilities from `src/lib/`
-3. Reference `src/scrapers/msg_calendar.js` as a complete working example
-4. Add your scraper to `src/scrapers/` and register it in `src/run_pipeline.py`
+This project uses a **staging-to-production workflow** for developing new scrapers:
+
+1. **Create scraper** → Save to `src/scrapers-staging/{venue_name}.js`
+   - Follow the guide in `docs/stagehand-scraper-guide.md`
+   - Use the shared utilities from `src/lib/`
+   - Reference `src/scrapers/msg_calendar.js` as a complete working example
+
+2. **Test manually** → `node src/scrapers-staging/{venue_name}.js`
+
+3. **Validate** → `python src/test_staging_scraper.py {venue_name}`
+   - Runs schema, field, and instruction validation tests
+
+4. **Promote** → `python src/promote_scraper.py {venue_name}`
+   - Moves scraper to production directory
+   - Updates pipeline configuration automatically
+
+5. **First production run** → `python src/run_pipeline.py --source {venue_name}`
+   - Runs full pipeline (scrape → clean → test) for this scraper only
+
+6. **Verify data** → Check `raw_events` and `clean_events` tables
+
+7. **Done!** → Scraper is now in production and runs automatically
+
+See `src/scrapers-staging/README.md` for detailed workflow instructions.
 
 ## Running the Application
 

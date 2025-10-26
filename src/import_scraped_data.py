@@ -49,6 +49,7 @@ def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optio
             '%m/%d/%Y',           # 10/25/2025
             '%d/%m/%Y',           # 25/10/2025
             '%B %d',              # October 25 (current year)
+            '%a, %B %d',          # Sun, October 26
             '%A, %B %d',         # SATURDAY, OCTOBER 25
             '%A, %B %d, %Y',     # SATURDAY, OCTOBER 25, 2025
         ]
@@ -277,13 +278,13 @@ def import_events(session, source: str, file_path: str, scrape_run_id: int) -> i
 def main():
     """Main script logic"""
     parser = argparse.ArgumentParser(description='Import scraped data into raw_events table')
-    parser.add_argument('--source', required=True, help='Source name (kings_theatre, prospect_park, msg_calendar)')
+    parser.add_argument('--source', required=True, help='Source name (kings_theatre, prospect_park, msg_calendar, brooklyn_museum, public_theater)')
     parser.add_argument('--file', required=True, help='Path to JSON file to import')
     
     args = parser.parse_args()
     
     # Validate source
-    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum']
+    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater']
     if args.source not in valid_sources:
         logger.error(f"Invalid source '{args.source}'. Must be one of: {valid_sources}")
         sys.exit(1)
