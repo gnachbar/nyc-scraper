@@ -134,14 +134,22 @@
   - [x] 15.1 Debug schema validation error in Brooklyn Museum scraper - COMPLETED: Fixed extraction instruction to explicitly extract actual href attribute values from link elements instead of constructing URLs from event names. Scraper now successfully extracts 48 events.
   - [x] 15.2 Test Brooklyn Museum scraper end-to-end after fix - COMPLETED: Ran scraper successfully. 48 raw events → 37 clean events (11 duplicates removed). No quality issues.
   - [x] 15.3 Verify Brooklyn Museum events appear in clean_events table - COMPLETED: 37 clean events successfully added to clean_events table.
-- [ ] 16.0 Pipeline Run Reports
-  - [ ] 16.1 Create comprehensive report file output for each pipeline run
-  - [ ] 16.2 Include summary of events scraped, cleaned, and test results
-  - [ ] 16.3 Add HTML report generation for better readability
-  - [ ] 16.4 Archive reports by timestamp in data/output directory
-- [ ] 17.0 Enhanced Web Interface Features
-  - [x] 17.1 Implement filtering by date range, venue, category - PARTIAL: Venue filtering implemented with display_venue. Date range and category filtering pending.
-  - [x] 17.2 Add search functionality and pagination - COMPLETED: Pagination implemented. Search functionality pending.
-- [ ] 18.0 Further Extensions
-  - [ ] 18.1 Adding day of week filtering
-  - [ ] 18.2 Identify and tag recurring events (e.g., Prospect Park stroller walks, MSG Knick games, Broadway shows) with a recurring flag and add filter toggle to show/hide them
+- [ ] 16.0 Fix Brooklyn Museum Time Extraction
+  - [ ] 16.1 Debug brooklyn_museum scraper - investigate why all times are showing as midnight
+  - [ ] 16.2 Fix time extraction logic for Brooklyn Museum events
+  - [ ] 16.3 Verify Brooklyn Museum events have proper times (not midnight)
+- [ ] 17.0 Add Time Regression Checks
+  - [ ] 17.1 Add explicit check in scrapers-staging workflow to detect if all events have same time (midnight or otherwise)
+  - [ ] 17.2 Add explicit check in run_pipeline.py to detect time regressions
+  - [ ] 17.3 Fail pipeline if time regression detected
+- [ ] 18.0 Pipeline Run Reports
+  - [ ] 18.1 Create comprehensive report file output for each pipeline run
+  - [ ] 18.2 Include summary of events scraped, cleaned, and test results
+  - [ ] 18.3 Add HTML report generation for better readability
+  - [ ] 18.4 Archive reports by timestamp in data/output directory
+- [ ] 19.0 Enhanced Web Interface Features
+  - [x] 19.1 Implement filtering by date range, venue, category - PARTIAL: Venue filtering implemented with display_venue. Date range and category filtering pending.
+  - [x] 19.2 Add search functionality and pagination - COMPLETED: Pagination implemented. Search functionality pending.
+- [ ] 20.0 Further Extensions
+  - [ ] 20.1 Adding day of week filtering
+  - [ ] 20.2 Identify and tag recurring events (e.g., Prospect Park stroller walks, MSG Knick games, Broadway shows) with a recurring flag and add filter toggle to show/hide them
