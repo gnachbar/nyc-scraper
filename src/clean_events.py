@@ -30,8 +30,8 @@ import re
 # Add parent directory to path to import our modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from models import ScrapeRun, RawEvent, CleanEvent, SessionLocal
-from logger import get_logger
+from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal
+from src.logger import get_logger
 
 # Import fuzzy matching
 try:

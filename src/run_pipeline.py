@@ -18,8 +18,8 @@ from typing import List, Dict, Any, Optional
 # Add parent directory to path to import our modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from models import ScrapeRun, RawEvent, CleanEvent, SessionLocal
-from logger import get_logger
+from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal
+from src.logger import get_logger
 
 logger = get_logger('run_pipeline')
 
@@ -306,7 +306,7 @@ def main():
     """Main orchestration logic"""
     parser = argparse.ArgumentParser(description='Run data pipeline for all scrapers')
     parser.add_argument('--source', 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum'],
                        help='Run specific scraper only (default: all)')
     parser.add_argument('--skip-cleaning', action='store_true',
                        help='Skip cleaning step')
@@ -321,7 +321,7 @@ def main():
     if args.source:
         sources = [args.source]
     else:
-        sources = ['kings_theatre', 'msg_calendar', 'prospect_park']
+        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum']
     
     # Create output directory if it doesn't exist
     output_dir = Path(args.output_dir)

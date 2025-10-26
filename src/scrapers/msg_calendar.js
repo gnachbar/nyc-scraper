@@ -1,186 +1,127 @@
-import { Stagehand } from "@browserbasehq/stagehand";
-import { z } from "zod";
+/**
+ * MSG Calendar Scraper
+ * 
+ * This scraper demonstrates the shared utilities architecture pattern used by all scrapers.
+ * It serves as a reference implementation with detailed inline comments explaining each step.
+ * 
+ * Key Features:
+ * - Uses shared utility functions from src/lib/ to reduce code duplication
+ * - Single-venue scraper (hardcodes 'Madison Square Garden' as eventLocation)
+ * - Handles "Load More Events" button clicking (unique to MSG)
+ * - Automatically saves to database and runs consistency tests
+ */
 
-// Define standardized schema for all scrapers
-const StandardEventSchema = z.object({
-  events: z.array(z.object({
-    eventName: z.string(),
-    eventDate: z.string(),
-    eventTime: z.string().default(""), // Required field, empty string if not found
-    eventLocation: z.string().default("Madison Square Garden"), // Hardcoded for single venue
-    eventUrl: z.string().url()
-  }))
-});
+// Import shared utilities from src/lib/
+// scraper-utils.js: Provides initialization, schema creation, and scrolling helpers
+import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom } from '../lib/scraper-utils.js';
+// scraper-actions.js: Provides button clicking and event extraction with error handling
+import { clickButtonUntilGone, extractEventsFromPage } from '../lib/scraper-actions.js';
+// scraper-persistence.js: Provides logging, database saving, and error handling
+import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
 
+/**
+ * Create standardized event schema using shared utility function.
+ * Using eventLocationDefault parameter because MSG is a single-venue scraper.
+ * The schema will automatically set eventLocation to 'Madison Square Garden' for all events.
+ */
+const StandardEventSchema = createStandardSchema({ eventLocationDefault: 'Madison Square Garden' });
+
+/**
+ * Main scraper function for MSG Calendar
+ * 
+ * Flow:
+ * 1. Initialize Stagehand with Browserbase (shared utility)
+ * 2. Open Browserbase session URL in browser (shared utility)
+ * 3. Navigate to MSG calendar page
+ * 4. Scroll to bottom to trigger lazy loading (shared utility)
+ * 5. Click "Load More Events" button multiple times (shared utility with MSG-specific config)
+ * 6. Extract all visible events (shared utility with error handling)
+ * 7. Log results (shared utility)
+ * 8. Save to database and run tests (shared utility)
+ * 
+ * @returns {Promise<Object>} Object containing events array
+ */
 export async function scrapeMSGCalendar() {
-  const stagehand = new Stagehand({
-    env: "BROWSERBASE",
-    verbose: 1,
-  });
+  // Initialize Stagehand using shared utility function
+  // This handles environment setup, verbose logging, and Browserbase configuration
+  const stagehand = await initStagehand({ env: 'BROWSERBASE' });
+  const page = stagehand.page;
 
   try {
-    await stagehand.init();
-    const page = stagehand.page;
-
-    // Auto-Open Browserbase session in default browser
+    // Open Browserbase session URL in default browser using shared utility
+    // This allows watching the scraping live at https://browserbase.com/sessions/{id}
     console.log(`Stagehand Session Started`);
     console.log(`Watch live: https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`);
-    
-    // Automatically open the session URL in the browser
-    const { exec } = await import('child_process');
-    const openCommand = process.platform === 'darwin' ? 'open' : 
-                       process.platform === 'win32' ? 'start' : 'xdg-open';
-    
-    exec(`${openCommand} https://browserbase.com/sessions/${stagehand.browserbaseSessionID}`, (error) => {
-      if (error) {
-        console.log('Could not automatically open browser. Please manually open the URL above.');
-      } else {
-        console.log('Opened Browserbase session in your default browser');
-      }
-    });
-
-    console.log("Starting MSG Calendar scraping...");
+    openBrowserbaseSession(stagehand.browserbaseSessionID);
 
     // Step 1: Navigate to the MSG calendar page
+    // Wait for network idle to ensure page is fully loaded
     await page.goto("https://www.msg.com/calendar?venues=KovZpZA7AAEA");
-    console.log("Navigated to MSG calendar page");
-    
-    // Wait for page to load completely
     await page.waitForLoadState('networkidle');
-    console.log("Page loaded");
-
-    // Step 2: Scroll all the way to the bottom
-    console.log("Scrolling to bottom of page...");
-    await page.evaluate(() => {
-      window.scrollTo(0, document.body.scrollHeight);
+    
+    // Step 2: Scroll to the bottom using shared utility function
+    // This triggers any lazy-loaded content on the page
+    // Shared utility ensures minimum wait time (2000ms) for content to load
+    await scrollToBottom(page);
+    
+    // Step 3: Click "Load More Events" button repeatedly until it disappears
+    // Using shared utility function with MSG-specific configuration:
+    // - Maximum 3 clicks (MSG typically has only a few batches)
+    // - Scroll after each click to trigger additional lazy loading
+    // - Custom wait times optimized for MSG's page behavior
+    // This is MSG-specific logic different from other scrapers
+    await clickButtonUntilGone(page, "Load More Events", 3, {
+      scrollAfterClick: true,
+      scrollWaitTime: 1000,
+      loadWaitTime: 2000
     });
-    await page.waitForTimeout(2000); // Wait for any lazy loading
-
-    // Step 3: Click "Load More Events" up to 3 times
-    const maxLoadMoreClicks = 3;
-    let loadMoreClicks = 0;
-
-    for (let i = 0; i < maxLoadMoreClicks; i++) {
-      try {
-        console.log(`Attempting to click "Load More Events" (attempt ${i + 1}/${maxLoadMoreClicks})`);
-        
-        // Look for "Load More Events" button
-        const [loadMoreAction] = await page.observe("click the 'Load More Events' button or 'Load More' button");
-        
-        if (loadMoreAction) {
-          await page.act(loadMoreAction);
-          loadMoreClicks++;
-          console.log(`Successfully clicked "Load More Events" (${loadMoreClicks}/${maxLoadMoreClicks})`);
-          
-          // Wait for new content to load
-          await page.waitForLoadState('networkidle');
-          await page.waitForTimeout(2000);
-          
-          // Scroll to bottom again to trigger any additional lazy loading
-          await page.evaluate(() => {
-            window.scrollTo(0, document.body.scrollHeight);
-          });
-          await page.waitForTimeout(1000);
-        } else {
-          console.log("No 'Load More Events' button found. All events may be loaded.");
-          break;
-        }
-      } catch (error) {
-        console.log(`Failed to click "Load More Events" on attempt ${i + 1}: ${error.message}`);
-        break;
-      }
-    }
-
-    console.log(`Total "Load More Events" clicks: ${loadMoreClicks}`);
-
-    // Step 4: Extract all visible events
-    console.log("Extracting all visible events...");
     
-    let result;
-    try {
-      result = await page.extract({
-        instruction: "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), location (as eventLocation - set to 'Madison Square Garden' for all events), and the FULL URL (as eventUrl) from the href attribute of the 'View Event Details' link or the event card link by clicking on it. Extract the complete URL starting with https://www.msg.com/events-tickets/",
-        schema: StandardEventSchema
-      });
-    } catch (extractError) {
-      console.error("Extraction failed:", extractError.message);
-      console.log("Taking screenshot for debugging...");
-      await page.screenshot({ path: 'msg_extraction_failed.png' });
-      throw new Error(`Failed to extract events: ${extractError.message}`);
-    }
-    
-    // Validate result
-    if (!result || !result.events) {
-      console.error("No events extracted from page");
-      await page.screenshot({ path: 'msg_no_events.png' });
-      throw new Error("Extraction returned no events");
-    }
+    // Step 4: Extract all visible events using shared utility function
+    // The extraction instruction tells Stagehand exactly what to extract
+    // The schema validates the extracted data structure
+    // The sourceName is used for error reporting and test file naming
+    // The shared utility automatically captures a screenshot if extraction fails
+    const result = await extractEventsFromPage(
+      page,
+      "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), location (as eventLocation - set to 'Madison Square Garden' for all events), and the FULL URL (as eventUrl) from the href attribute of the 'View Event Details' link or the event card link by clicking on it. Extract the complete URL starting with https://www.msg.com/events-tickets/",
+      StandardEventSchema,
+      { sourceName: 'msg_calendar' }
+    );
 
-    console.log("=== MSG Calendar Scraping Results ===");
-    console.log(`Total events found: ${result.events.length}`);
+    // Backup: Add hardcoded venue name to all events
+    // This ensures eventLocation is set even if schema default fails
+    // This is scraper-specific logic, not shared utility
+    const eventsWithLocation = result.events.map(event => ({
+      ...event,
+      eventLocation: "Madison Square Garden"
+    }));
+
+    // Log scraping results using shared utility function
+    // This logs total events, events with/without times, and sample events
+    // No need to manually count or format - the shared utility handles it
+    logScrapingResults(eventsWithLocation, 'MSG Calendar');
     
-    // Count events with and without times
-    const eventsWithTimes = result.events.filter(e => e.eventTime && e.eventTime.trim() !== '').length;
-    const eventsWithoutTimes = result.events.length - eventsWithTimes;
-    
-    if (eventsWithoutTimes > 0) {
-      console.log(`⚠ WARNING: ${eventsWithoutTimes}/${result.events.length} events missing times`);
+    // Save to database and run tests using shared utility function
+    // This shared utility:
+    // 1. Creates a temporary JSON file
+    // 2. Calls the Python import script
+    // 3. Runs scraper consistency tests
+    // 4. Cleans up the temporary file
+    // All error handling is built-in
+    if (eventsWithLocation.length > 0) {
+      await saveEventsToDatabase(eventsWithLocation, 'msg_calendar');
     } else {
-      console.log(`✓ All ${result.events.length} events have times`);
-    }
-    
-    if (result.events.length > 0) {
-      console.log("\nFirst few events:");
-      result.events.slice(0, 5).forEach((event, index) => {
-        console.log(`${index + 1}. ${event.eventName}`);
-        console.log(`   Date: ${event.eventDate}`);
-        console.log(`   Time: ${event.eventTime || 'N/A'}`);
-        console.log(`   Location: ${event.eventLocation}`);
-        console.log(`   URL: ${event.eventUrl}`);
-        console.log('');
-      });
-      
-      // Write events directly to raw_events table
-      console.log("Writing events to database...");
-      const { execSync } = await import('child_process');
-      const fs = await import('fs');
-      const path = await import('path');
-      
-      // Create temporary JSON file for import
-      const tempFile = path.join(process.cwd(), `temp_msg_${Date.now()}.json`);
-      fs.writeFileSync(tempFile, JSON.stringify({ events: result.events }, null, 2));
-      
-      try {
-        // Import to database using existing import script
-        execSync(`python3 src/import_scraped_data.py --source msg_calendar --file ${tempFile}`, { stdio: 'inherit' });
-        console.log(`Successfully imported ${result.events.length} events to database`);
-        
-        // Run scraper test to compare with previous run
-        console.log("Running scraper test...");
-        try {
-          execSync(`python3 src/test_scrapers.py --source msg_calendar`, { stdio: 'inherit' });
-          console.log("Scraper test completed successfully");
-        } catch (testError) {
-          console.warn("Scraper test failed (non-critical):", testError.message);
-          // Don't throw - test failure shouldn't stop the scraper
-        }
-      } catch (importError) {
-        console.error("Database import failed:", importError);
-        throw importError;
-      } finally {
-        // Clean up temporary file
-        fs.unlinkSync(tempFile);
-      }
-    } else {
-      console.log("No events found on the page.");
+      console.log("No events found!");
     }
 
-    return { events: result.events };
+    return { events: eventsWithLocation };
 
   } catch (error) {
-    console.error("MSG Calendar scraping failed:", error);
-    throw error;
+    // Handle errors using shared utility function
+    // This captures a screenshot for debugging and re-throws the error
+    await handleScraperError(error, page, 'MSG Calendar');
   } finally {
+    // Always close Stagehand session to clean up browser resources
     await stagehand.close();
   }
 }
@@ -194,3 +135,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 // Export the function for use in other modules
+export default scrapeMSGCalendar;

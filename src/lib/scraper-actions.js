@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { scrollToBottom } from './scraper-utils.js';
 
 /**
  * Click a button repeatedly until it's no longer present on the page
@@ -37,10 +38,7 @@ export async function clickButtonUntilGone(page, buttonText, maxClicks, options 
         
         // Scroll to bottom if requested
         if (scrollAfterClick) {
-          await page.evaluate(() => {
-            window.scrollTo(0, document.body.scrollHeight);
-          });
-          await page.waitForTimeout(scrollWaitTime);
+          await scrollToBottom(page, scrollWaitTime);
         }
       } else {
         console.log(`No "${buttonText}" button found. All content may be loaded.`);

@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, JSON, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from config import Config
+from src.config import Config
 
 Base = declarative_base()
 
@@ -65,7 +65,8 @@ class CleanEvent(Base):
     start_time = Column(DateTime, nullable=False)  # Required field per PRD
     end_time = Column(DateTime)
     location = Column(Text)
-    venue = Column(String(200))
+    venue = Column(String(200))  # Detailed venue/location information
+    display_venue = Column(String(200))  # Simplified venue name for UI display
     price_range = Column(String(100))  # Standardized price info
     category = Column(String(100))
     url = Column(Text)

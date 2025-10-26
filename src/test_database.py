@@ -1,9 +1,9 @@
 """
 Database connection test script
 """
-from models import SessionLocal, RawEvent, CleanEvent
-from database import test_connection
-from logger import get_logger
+from src.web.models import SessionLocal, RawEvent, CleanEvent
+from src.web.database import test_connection
+from src.logger import get_logger
 from datetime import datetime
 
 logger = get_logger('database_test')

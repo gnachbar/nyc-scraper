@@ -3,13 +3,13 @@
 - `src/scrapers/kings.js` - Kings Theatre scraper using Stagehand
 - `src/scrapers/prospect_park.js` - Prospect Park events scraper using Stagehand  
 - `src/scrapers/msg_calendar.js` - MSG Calendar scraper using Stagehand
-- `database.py` - Database connection and operations
-- `models.py` - SQLAlchemy models for scrape_runs, raw_events, and clean_events
+- `src/web/database.py` - Database connection and operations
+- `src/web/models.py` - SQLAlchemy models for scrape_runs, raw_events, and clean_events
 - `src/import_scraped_data.py` - Data import script for raw_events table
 - `src/test_scrapers.py` - Scraper testing and reporting framework
 - `src/clean_events.py` - Data cleaning pipeline (within source)
 - `src/deduplicate_across_sources.py` - Cross-source deduplication
-- `app.py` - Flask web application for browsing events
+- `src/web/app.py` - Flask web application for browsing events
 - `templates/base.html` - Base HTML template with styling
 - `templates/index.html` - Home page with event listings and filters
 - `templates/event_detail.html` - Individual event detail page
@@ -17,11 +17,11 @@
 - `static/css/style.css` - Main stylesheet with responsive design
 - `static/js/main.js` - JavaScript for enhanced interactivity
 - `src/extract_event_times.py` - Reusable event time extractor utility
-- `integrate_time_extraction.py` - Integration script for Kings Theatre workflow
+- `src/scripts/integrate_time_extraction.py` - Integration script for Kings Theatre workflow
 - `test_time_extractor.py` - Test script for time extractor
 - `docs/event-time-extractor.md` - Documentation for time extractor utility
 - `requirements.txt` - Python dependencies
-- `config.py` - Configuration file (database URLs, API keys)
+- `src/config.py` - Configuration file (database URLs, API keys)
 - `README.md` - Setup and usage instructions
 
 ### Notes
