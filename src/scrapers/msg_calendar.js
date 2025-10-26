@@ -98,7 +98,7 @@ export async function scrapeMSGCalendar() {
     let result;
     try {
       result = await page.extract({
-        instruction: "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), and the URL (as eventUrl) by clicking on the 'View Event Details' button or similar link to get the event page URL",
+        instruction: "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), and the FULL URL (as eventUrl) from the href attribute of the 'View Event Details' link or the event card link. Extract the complete URL starting with https://www.msg.com/events-tickets/",
         schema: StandardEventSchema
       });
     } catch (extractError) {
