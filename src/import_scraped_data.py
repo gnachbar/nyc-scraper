@@ -45,10 +45,12 @@ def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optio
         # Common date formats from scrapers
         date_formats = [
             '%B %d, %Y',           # October 25, 2025
+            '%b %d, %Y',           # Nov 9, 2025 (abbreviated month)
             '%Y-%m-%d',           # 2025-10-25
             '%m/%d/%Y',           # 10/25/2025
             '%d/%m/%Y',           # 25/10/2025
             '%B %d',              # October 25 (current year)
+            '%b %d',              # Nov 9 (current year, abbreviated month)
             '%a, %B %d',          # Sun, October 26
             '%A, %B %d',         # SATURDAY, OCTOBER 25
             '%A, %B %d, %Y',     # SATURDAY, OCTOBER 25, 2025
@@ -278,13 +280,13 @@ def import_events(session, source: str, file_path: str, scrape_run_id: int) -> i
 def main():
     """Main script logic"""
     parser = argparse.ArgumentParser(description='Import scraped data into raw_events table')
-    parser.add_argument('--source', required=True, help='Source name (kings_theatre, prospect_park, msg_calendar, brooklyn_museum, public_theater)')
+    parser.add_argument('--source', required=True, help='Source name (kings_theatre, prospect_park, msg_calendar, brooklyn_museum, public_theater), brooklyn_paramount')
     parser.add_argument('--file', required=True, help='Path to JSON file to import')
     
     args = parser.parse_args()
     
     # Validate source
-    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater']
+    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery']
     if args.source not in valid_sources:
         logger.error(f"Invalid source '{args.source}'. Must be one of: {valid_sources}")
         sys.exit(1)

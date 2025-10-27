@@ -741,7 +741,7 @@ def main():
     """Main CLI interface for the data cleaning pipeline."""
     parser = argparse.ArgumentParser(description='Clean and deduplicate event data')
     parser.add_argument('--source', 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery'],
                        help='Clean events for specific source (default: all sources)')
     parser.add_argument('--run-id', type=int,
                        help='Clean events for specific scrape run ID')

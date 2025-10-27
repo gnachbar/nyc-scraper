@@ -103,7 +103,55 @@ All scrapers must:
 - Save to database using saveEventsToDatabase()
 - Run tests using run_scraper_consistency()
 
+## Common Issues & Best Practices
+
+### Page Loading
+
+**ALWAYS use `waitForLoadState('networkidle')` after `page.goto()`**:
+
+```javascript
+await page.goto("https://example.com/shows");
+await page.waitForLoadState('networkidle');
+```
+
+**Why:** This ensures the page is fully loaded before proceeding. Without it, the first scraper run often fails because:
+- JavaScript hasn't finished executing
+- AJAX calls haven't completed
+- Content hasn't rendered yet
+
+**Exception:** If `networkidle` times out (exceeds 30 seconds), the page may have continuous network activity. In this case, use:
+```javascript
+await page.goto("https://example.com/shows");
+await page.waitForTimeout(3000); // Wait 3 seconds for initial load
+```
+
+But this should be rare - most sites work fine with `networkidle`.
+
+### Date Formatting
+
+**ALWAYS include the YEAR** in extracted dates:
+- ✅ Good: "Monday, October 27, 2025"
+- ✅ Good: "MON OCT 27 2025"
+- ❌ Bad: "MON 27 OCT" (missing year)
+
+The database import script needs a full date to parse correctly.
+
+### URL Extraction
+
+**ALWAYS extract complete URLs**:
+- ✅ Good: "https://www.ticketmaster.com/event/123456"
+- ❌ Bad: "0-338" or "/events/123"
+
+Use relative URL logic if needed to convert to absolute URLs.
+
 ## Current Staging Scrapers
+
+### lepistol.js
+- **Status:** 🆕 Testing
+- **Created:** January 2025
+- **Notes:** Scrapes Le Pistol weekly recurring events. Uses new `convertWeeklyToDatedEvents()` utility to convert weekly schedule into individual dated events for the next 6 months
+- **Special Features:** Handles expandable day sections, generates future dated events from weekly recurring schedule
+- **BrowserBase Sessions:** 0 (not yet tested)
 
 ### public_theater.js
 - **Status:** ✅ Promoted to production

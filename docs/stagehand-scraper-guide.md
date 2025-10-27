@@ -279,7 +279,7 @@ export default scrape[SiteName];
 ### Best Practices for Generated Code
 
 1. **Auto-Open Browserbase Session** - Always include auto-open functionality to watch scraping live
-2. **Use Playwright for Navigation** - `page.goto()`, `page.waitForLoadState('networkidle')`
+2. **ALWAYS Use waitForLoadState('networkidle')** - **CRITICAL:** Must use `await page.waitForLoadState('networkidle')` after `page.goto()` to ensure page is fully loaded before scraping
 3. **Be Specific in act() Instructions** - Include identifying details (color, position, text)
 4. **Wait Between Actions** - Add `await page.waitForLoadState('networkidle')` after dynamic actions
 5. **Handle Pagination** - Use loops with a max iteration safety limit

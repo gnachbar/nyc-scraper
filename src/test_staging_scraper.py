@@ -38,11 +38,20 @@ def test_file_exists(source: str) -> Tuple[bool, str]:
 
 def test_uses_shared_utilities(content: str) -> Tuple[bool, List[str]]:
     """Test that the scraper uses shared utilities."""
-    required_imports = [
-        'scraper-utils.js',
-        'scraper-actions.js',
-        'scraper-persistence.js'
-    ]
+    # Special case: Weekly recurring scrapers using convertWeeklyToDatedEvents
+    if 'convertWeeklyToDatedEvents' in content:
+        # Only require scraper-utils and scraper-persistence
+        required_imports = [
+            'scraper-utils.js',
+            'scraper-persistence.js'
+        ]
+    else:
+        # Standard scrapers require all three
+        required_imports = [
+            'scraper-utils.js',
+            'scraper-actions.js',
+            'scraper-persistence.js'
+        ]
     
     missing = []
     for util in required_imports:
@@ -54,6 +63,19 @@ def test_uses_shared_utilities(content: str) -> Tuple[bool, List[str]]:
 
 def test_schema_definition(content: str) -> Tuple[bool, Dict[str, bool]]:
     """Test that schema contains all required fields."""
+    # Special case: Weekly recurring scrapers using convertWeeklyToDatedEvents
+    if 'convertWeeklyToDatedEvents' in content:
+        # For weekly scrapers, check for custom schema with day field
+        required_fields = {
+            'eventName': 'eventName' in content and 'z.string()' in content,
+            'day': 'day' in content and 'z.string()' in content,
+            'eventTime': 'eventTime' in content,
+            'eventLocation': 'eventLocation' in content and 'z.string()' in content,
+            'eventUrl': 'eventUrl' in content and 'z.string()' in content,
+        }
+        all_present = all(required_fields.values())
+        return all_present, required_fields
+    
     # Look for schema definition - check if using shared utility
     schema_match = re.search(
         r'createStandardSchema\(\{[^}]*\}\)',
@@ -94,6 +116,15 @@ def test_schema_definition(content: str) -> Tuple[bool, Dict[str, bool]]:
 
 def test_extraction_instruction(content: str) -> Tuple[bool, str]:
     """Test that extraction instruction mentions all required fields."""
+    # Special case: Weekly recurring scrapers using convertWeeklyToDatedEvents
+    if 'convertWeeklyToDatedEvents' in content:
+        # For weekly scrapers, check for page.extract() calls
+        if 'page.extract' in content:
+            # Check if instructions mention event data
+            if 'eventName' in content.lower() or 'event name' in content.lower():
+                return True, "Extraction instructions present for weekly recurring events"
+        return False, "No extraction calls found"
+    
     # Extract instruction from extractEventsFromPage call
     # Handle both single-line and multi-line instructions
     instruction_match = re.search(
@@ -126,6 +157,13 @@ def test_extraction_instruction(content: str) -> Tuple[bool, str]:
 
 def test_location_handling(content: str, source: str) -> Tuple[bool, str]:
     """Test that location is properly handled (hardcoded or extracted)."""
+    # Special case: Weekly recurring scrapers using convertWeeklyToDatedEvents
+    if 'convertWeeklyToDatedEvents' in content:
+        # Check for hardcoded location in the content
+        if 'eventLocation' in content and ('Le Pistol' in content or 'eventLocationDefault' in content):
+            return True, "Weekly recurring: location hardcoded"
+        return False, "Weekly recurring: location not found"
+    
     # Extract instruction from extractEventsFromPage call (same pattern as extraction test)
     instruction_match = re.search(
         r'extractEventsFromPage\s*\(\s*[^,]+\s*,\s*"([^"]*(?:\\.[^"]*)*)"',

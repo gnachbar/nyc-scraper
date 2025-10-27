@@ -92,6 +92,8 @@ This project uses a **staging-to-production workflow** for developing new scrape
 
 See `src/scrapers-staging/README.md` for detailed workflow instructions.
 
+**New to adding scrapers?** Check out **[CONTRIBUTING.md](CONTRIBUTING.md)** for a complete guide on how to add new scrapers to the project.
+
 ## Running the Application
 
 ### Running the Flask Web App
@@ -114,8 +116,9 @@ python src/run_pipeline.py
 
 ## Documentation
 
-Workflow guides and documentation are in the `docs/` directory:
-- `stagehand-scraper-guide.md` - Guide for using Stagehand
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Complete guide for adding new scrapers (start here!)
+- `docs/stagehand-scraper-guide.md` - Detailed guide for using Stagehand
+- `src/scrapers-staging/README.md` - Staging workflow instructions
 - Other workflow files for AI-assisted development
 
 ## Test Outputs
