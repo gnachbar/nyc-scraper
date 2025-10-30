@@ -1,0 +1,35 @@
+# NYC Scraper Project Rules
+
+## Creating New Scrapers
+
+When I ask you to create a new scraper, follow these steps:
+
+1. **⚠️ MANDATORY: Follow `docs/stagehand-scraper-guide.md` step-by-step** ⚠️
+   - **DO NOT skip STEP 1: PROMPT THE USER FIRST**
+   - The guide has a specific workflow - follow it in order
+   - Reference `docs/stagehand-scraper-guide.md` for the complete pattern and structure for building new scrapers
+   - Use shared utilities from `src/lib/` (scraper-utils.js, scraper-actions.js, scraper-persistence.js)
+   - Follow the standardized output schema (eventName, eventDate, eventTime, eventLocation, eventUrl)
+   - Always use `waitForLoadState('networkidle')` after page navigation
+   - Save scrapers to `src/scrapers-staging/{venue_name}.js` initially
+
+2. **Understand the workflow**: Read through `src/scrapers-staging/staging-README.md` to understand:
+   - The staging-to-production promotion process
+   - Testing and validation requirements
+   - Configuration updates needed
+   - The target of 2 BrowserBase sessions (one for manual test, one for promotion)
+
+3. **Review existing patterns**: Check scrapers in `src/scrapers/` directory for:
+   - Real-world implementation examples
+   - Common patterns for different site types (single-page, pagination, "Load More" buttons)
+   - Error handling approaches
+   - Database integration patterns
+
+## Key Principles
+
+- **Always use shared utilities** - Don't duplicate code that exists in `src/lib/`
+- **Follow the staging workflow** - New scrapers go to `scrapers-staging/` first, then get promoted
+- **Standardized schema** - All scrapers must output the same structure
+- **Error handling** - Use `handleScraperError()` for proper screenshot capture
+- **Test first** - Manual test in staging before promotion to production
+
