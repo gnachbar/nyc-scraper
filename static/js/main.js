@@ -2,9 +2,12 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize page functionality
+	initializeSidebarToggle();
     initializeFilters();
     initializeTableSorting();
     initializeSearchEnhancements();
+    initializeDateRangePicker();
+    initializeTimeFilter();
 });
 
 // Filter functionality enhancements
@@ -27,6 +30,139 @@ function initializeFilters() {
 
     // Clear filters button
     addClearFiltersButton();
+}
+
+// Initialize single date-range picker using Flatpickr
+function initializeDateRangePicker() {
+    const input = document.getElementById('date-range');
+    const form = document.querySelector('.filter-form');
+    if (!input || !form || typeof flatpickr === 'undefined') return;
+
+    const hiddenStart = document.getElementById('date_start_hidden');
+    const hiddenEnd = document.getElementById('date_end_hidden');
+    let suppressNextChange = false; // guard to ignore change events we trigger programmatically
+
+    // Compute default dates
+    const defaultDates = [];
+    const startVal = input.getAttribute('data-start');
+    const endVal = input.getAttribute('data-end');
+    if (startVal) defaultDates.push(startVal);
+    if (endVal) defaultDates.push(endVal);
+
+    const fp = flatpickr(input, {
+        mode: 'range',
+        dateFormat: 'Y-m-d',
+        defaultDate: defaultDates,
+        allowInput: false,
+        closeOnSelect: false,
+        onOpen: function() {
+            // Reset selection each time the calendar opens
+            suppressNextChange = true;
+            try { this.clear(); } catch (_) {}
+            hiddenStart.value = '';
+            hiddenEnd.value = '';
+        },
+        onChange: function(selectedDates, dateStr) {
+            if (suppressNextChange) {
+                // Skip the change event caused by our programmatic clear on open
+                suppressNextChange = false;
+                return;
+            }
+            // selectedDates length: 0,1,2
+            if (selectedDates.length === 0) {
+                hiddenStart.value = '';
+                hiddenEnd.value = '';
+            } else if (selectedDates.length === 1) {
+                hiddenStart.value = formatYMD(selectedDates[0]);
+                hiddenEnd.value = '';
+            } else if (selectedDates.length >= 2) {
+                // Ensure chronological order
+                const d0 = selectedDates[0];
+                const d1 = selectedDates[1];
+                const sameDay = d0.getFullYear() === d1.getFullYear() && d0.getMonth() === d1.getMonth() && d0.getDate() === d1.getDate();
+                if (sameDay) {
+                    const ymd = formatYMD(d0);
+                    hiddenStart.value = ymd;
+                    hiddenEnd.value = ymd; // treat as single-day range explicitly
+                } else {
+                    const a = d0 < d1 ? d0 : d1;
+                    const b = d0 < d1 ? d1 : d0;
+                    hiddenStart.value = formatYMD(a);
+                    hiddenEnd.value = formatYMD(b);
+                }
+                // Submit only when two dates are selected
+                clearTimeout(initializeDateRangePicker._t);
+                initializeDateRangePicker._t = setTimeout(() => form.submit(), 200);
+            }
+        },
+        onClose: function(selectedDates) {
+            // If user closes after selecting only one date, treat as single-day
+            if (selectedDates && selectedDates.length === 1) {
+                const ymd = formatYMD(selectedDates[0]);
+                hiddenStart.value = ymd;
+                hiddenEnd.value = ymd;
+                clearTimeout(initializeDateRangePicker._t);
+                initializeDateRangePicker._t = setTimeout(() => form.submit(), 50);
+            }
+        }
+    });
+}
+
+// Sidebar toggle for left-hand filters
+function initializeSidebarToggle() {
+	const sidebar = document.querySelector('.sidebar');
+	const toggles = document.querySelectorAll('.sidebar-toggle');
+	const expandBtn = document.querySelector('.sidebar-expand-btn');
+	if (!sidebar || toggles.length === 0) return;
+
+	// Restore state - default to open (null or undefined means open)
+	try {
+		const saved = localStorage.getItem('sidebar-collapsed');
+		if (saved === 'true') {
+			sidebar.classList.add('collapsed');
+		} else {
+			sidebar.classList.remove('collapsed');
+		}
+	} catch (_) {
+		// Default to open if localStorage fails
+		sidebar.classList.remove('collapsed');
+	}
+
+	const update = () => {
+		const isCollapsed = sidebar.classList.contains('collapsed');
+		toggles.forEach(toggle => {
+			toggle.setAttribute('aria-expanded', String(!isCollapsed));
+		});
+		if (expandBtn) {
+			expandBtn.setAttribute('aria-expanded', String(!isCollapsed));
+		}
+		try { localStorage.setItem('sidebar-collapsed', String(isCollapsed)); } catch (_) {}
+	};
+
+	const toggleSidebar = (e) => {
+		if (e) e.stopPropagation();
+		sidebar.classList.toggle('collapsed');
+		update();
+	};
+
+	// Handle toggle buttons (X buttons)
+	toggles.forEach(toggle => {
+		toggle.addEventListener('click', toggleSidebar);
+	});
+
+	// Handle expand button
+	if (expandBtn) {
+		expandBtn.addEventListener('click', toggleSidebar);
+	}
+
+	update();
+}
+
+function formatYMD(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
 }
 
 // Add clear filters functionality
@@ -229,4 +365,71 @@ function formatTime(date) {
         hour12: true 
     };
     return date.toLocaleTimeString('en-US', options);
+}
+
+// Initialize time/distance filter with slider and toggle pills
+function initializeTimeFilter() {
+    const timeSlider = document.getElementById('time-slider');
+    const timeValue = document.getElementById('time-value');
+    const maxTimeHidden = document.getElementById('max_time_hidden');
+    const modesHidden = document.getElementById('modes_hidden');
+    const form = document.querySelector('.filter-form');
+    const togglePills = document.querySelectorAll('.toggle-pill');
+    
+    if (!timeSlider || !timeValue || !maxTimeHidden || !modesHidden || !form) return;
+    
+    // Restore active state from URL params
+    const currentModes = modesHidden.value || 'walk,subway,drive';
+    const modeList = currentModes.split(',').map(m => m.trim().toLowerCase());
+    
+    togglePills.forEach(pill => {
+        const mode = pill.getAttribute('data-mode').toLowerCase();
+        if (modeList.includes(mode)) {
+            pill.classList.add('active');
+        }
+    });
+    
+    // Handle slider movement
+    timeSlider.addEventListener('input', function() {
+        timeValue.textContent = this.value;
+        maxTimeHidden.value = this.value;
+    });
+    
+    // Handle slider release with debounce
+    let sliderDebounce;
+    timeSlider.addEventListener('change', function() {
+        clearTimeout(sliderDebounce);
+        sliderDebounce = setTimeout(() => {
+            form.submit();
+        }, 300);
+    });
+    
+    // Handle toggle pill clicks
+    togglePills.forEach(pill => {
+        pill.addEventListener('click', function() {
+            this.classList.toggle('active');
+            updateModesInput();
+            
+            // Submit form when pills are toggled
+            clearTimeout(sliderDebounce);
+            sliderDebounce = setTimeout(() => {
+                form.submit();
+            }, 200);
+        });
+    });
+    
+    // Update the hidden modes input based on active pills
+    function updateModesInput() {
+        const activeModes = Array.from(togglePills)
+            .filter(pill => pill.classList.contains('active'))
+            .map(pill => pill.getAttribute('data-mode').toLowerCase());
+        
+        modesHidden.value = activeModes.join(',');
+        
+        // If no modes selected, default to all
+        if (activeModes.length === 0) {
+            modesHidden.value = 'walk,subway,drive';
+            togglePills.forEach(pill => pill.classList.add('active'));
+        }
+    }
 }

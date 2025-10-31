@@ -88,7 +88,7 @@ export async function scrapePublicTheater() {
     // The shared utility automatically captures a screenshot if extraction fails
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events from The Public Theater calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), location (as eventLocation - set to 'The Public Theater' for all events), and the FULL URL (as eventUrl) by clicking on the event name/link to get the complete event page URL starting with https://publictheater.org/productions/",
+      "Extract all visible events from The Public Theater calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), description (as eventDescription, if available), location (as eventLocation - set to 'The Public Theater' for all events), and the FULL URL (as eventUrl) by clicking on the event name/link to get the complete event page URL starting with https://publictheater.org/productions/. If description is not visible, return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'public_theater' }
     );

@@ -71,6 +71,7 @@ export async function scrapeBrooklynParamount() {
         eventName: z.string(),
         eventDate: z.string(),
         eventTime: z.string().default("7:00 PM"),
+        eventDescription: z.string().default(""),
         eventUrl: z.string().url(),
         eventLocation: z.string().default("Brooklyn Paramount")
       }))
@@ -85,6 +86,7 @@ export async function scrapeBrooklynParamount() {
 - eventName: The full name/title of the event
 - eventDate: The FULL date including day, month, and YEAR (e.g., "Monday, October 27, 2025" or "Oct 27, 2025")
 - eventTime: Set to '7:00 PM' for all events (do not extract from page)
+- eventDescription: The event description if visible, otherwise return an empty string
 - eventUrl: The URL to the event (click on the event to get the URL from the event page or link)
 - eventLocation: Set to 'Brooklyn Paramount' for all events
 

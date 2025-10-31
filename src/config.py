@@ -29,6 +29,12 @@ class Config:
     # Logging Configuration
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     LOG_FILE = os.getenv('LOG_FILE', 'scraper.log')
+
+    # Google Maps Configuration
+    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
+    GMAPS_REGION = os.getenv('GMAPS_REGION', 'US')
+    GMAPS_LANGUAGE = os.getenv('GMAPS_LANGUAGE', 'en')
+    HOME_COORDS = os.getenv('HOME_COORDS')  # expected format: "lat,lon"
     
     @classmethod
     def validate(cls):

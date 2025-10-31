@@ -26,7 +26,7 @@ export async function scrapeSoapboxGallery() {
     // Step 3: Extract the required data for all events on the page
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events. For each event, get the event name, and extract the FULL date including day name if available (e.g., 'Sunday, November 9, 2025' or 'Nov 9, 2025'). For the event URL, look for a clickable link associated with the event (often the event name or title itself) and get its href attribute to get the full event page URL. Make sure to extract the complete URL. Set eventLocation to 'Soapbox Gallery' for all events. The event time is not visible on the listing page - return an empty string for eventTime as it will be extracted from individual pages later.",
+      "Extract all visible events. For each event, get the event name, and extract the FULL date including day name if available (e.g., 'Sunday, November 9, 2025' or 'Nov 9, 2025'). For the event URL, look for a clickable link associated with the event (often the event name or title itself) and get its href attribute to get the full event page URL. Make sure to extract the complete URL. Set eventLocation to 'Soapbox Gallery' for all events. The event time is not visible on the listing page - return an empty string for eventTime as it will be extracted from individual pages later. Try to extract the description if visible (as eventDescription), otherwise return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'soapbox_gallery' }
     );
