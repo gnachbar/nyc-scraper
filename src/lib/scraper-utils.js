@@ -61,7 +61,7 @@ export function createStandardSchema(options = {}) {
     eventName: z.string(),
     eventDate: z.string(),
     eventTime: z.string().default(""), // Required field, empty string if not found
-    eventDescription: z.string().default(""), // Event description, empty string if not found
+    eventDescription: z.string().nullable().transform(v => v ?? "").default(""), // Event description, handles null/undefined/missing gracefully - transforms null to empty string
     eventUrl: z.string().url()
   };
   
