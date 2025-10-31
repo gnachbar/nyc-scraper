@@ -7,10 +7,11 @@ import { exec } from "child_process";
  * @param {Object} options - Configuration options
  * @param {string} [options.env='BROWSERBASE'] - Environment to use
  * @param {number} [options.verbose=1] - Verbosity level (default: 1)
+ * @param {number} [options.timeout=900000] - Maximum session timeout in milliseconds (default: 15 minutes)
  * @returns {Promise<Object>} Initialized Stagehand instance
  */
 export async function initStagehand(options = {}) {
-  const { env = 'BROWSERBASE', verbose } = options;
+  const { env = 'BROWSERBASE', verbose, timeout = 900000 } = options; // Default: 15 minutes
   
   const stagehand = new Stagehand({
     env,
@@ -18,6 +19,14 @@ export async function initStagehand(options = {}) {
   });
 
   await stagehand.init();
+  
+  // Set default timeout for all operations (15 minutes by default)
+  // This prevents BrowserBase sessions from running indefinitely
+  if (stagehand.page) {
+    stagehand.page.setDefaultTimeout(timeout);
+    stagehand.page.setDefaultNavigationTimeout(timeout);
+    console.log(`Session timeout set to ${timeout / 1000} seconds (${timeout / 60000} minutes)`);
+  }
   
   return stagehand;
 }
