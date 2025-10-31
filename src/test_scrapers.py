@@ -232,6 +232,9 @@ def validate_event_quality(event: RawEvent) -> List[QualityIssue]:
             severity="warning"
         ))
     
+    # Note: We don't check for missing descriptions as an error since descriptions are optional
+    # Descriptions are tracked in aggregate statistics instead
+    
     return issues
 
 
@@ -285,6 +288,75 @@ def validate_start_time_collection(events: List[RawEvent]) -> List[QualityIssue]
         ))
     
     return issues
+
+
+def validate_description_collection(events: List[RawEvent]) -> List[QualityIssue]:
+    """
+    Validate that descriptions are being properly collected.
+    Returns a list of QualityIssue objects for description collection problems.
+    """
+    issues = []
+    
+    if not events:
+        return issues
+    
+    # Count events with descriptions
+    events_with_descriptions = [e for e in events if e.description and e.description.strip()]
+    events_without_descriptions = len(events) - len(events_with_descriptions)
+    description_rate = (len(events_with_descriptions) / len(events)) * 100 if events else 0
+    
+    # If no events have descriptions, this suggests scraper isn't collecting descriptions
+    if len(events_with_descriptions) == 0:
+        issues.append(QualityIssue(
+            event_id=0,  # Use 0 for run-level issues
+            title="ALL EVENTS",
+            issue_type="no_descriptions",
+            description=f"None of {len(events)} events have descriptions - scraper may not be collecting descriptions",
+            severity="warning"
+        ))
+    elif description_rate < 20:  # Less than 20% have descriptions
+        issues.append(QualityIssue(
+            event_id=0,
+            title="MOST EVENTS",
+            issue_type="low_description_rate",
+            description=f"Only {len(events_with_descriptions)}/{len(events)} events ({description_rate:.1f}%) have descriptions - possible scraper issue",
+            severity="warning"
+        ))
+    
+    return issues
+
+
+def calculate_description_stats(events: List[RawEvent]) -> Dict[str, Any]:
+    """
+    Calculate description extraction statistics.
+    Returns a dictionary with description metrics.
+    """
+    if not events:
+        return {
+            'total_events': 0,
+            'events_with_descriptions': 0,
+            'events_without_descriptions': 0,
+            'description_extraction_rate': 0.0,
+            'average_description_length': 0.0
+        }
+    
+    events_with_descriptions = [e for e in events if e.description and e.description.strip()]
+    events_without_descriptions = len(events) - len(events_with_descriptions)
+    description_rate = (len(events_with_descriptions) / len(events)) * 100 if events else 0.0
+    
+    # Calculate average description length (for events that have descriptions)
+    if events_with_descriptions:
+        avg_length = sum(len(e.description.strip()) for e in events_with_descriptions) / len(events_with_descriptions)
+    else:
+        avg_length = 0.0
+    
+    return {
+        'total_events': len(events),
+        'events_with_descriptions': len(events_with_descriptions),
+        'events_without_descriptions': events_without_descriptions,
+        'description_extraction_rate': round(description_rate, 1),
+        'average_description_length': round(avg_length, 1)
+    }
 
 
 def analyze_removed_events_patterns(removed_events: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -373,6 +445,20 @@ def generate_scrape_report(comparison: Dict[str, Any], source: str,
             'severity': issue.severity
         })
     
+    # Validate description collection across all events
+    description_issues = validate_description_collection(current_events)
+    for issue in description_issues:
+        quality_issues.append({
+            'event_id': issue.event_id,
+            'title': issue.title,
+            'issue_type': issue.issue_type,
+            'description': issue.description,
+            'severity': issue.severity
+        })
+    
+    # Calculate description statistics
+    description_stats = calculate_description_stats(current_events)
+    
     # Analyze removed events patterns
     removed_events_analysis = analyze_removed_events_patterns(comparison['removed_events'])
     
@@ -403,7 +489,8 @@ def generate_scrape_report(comparison: Dict[str, Any], source: str,
             'error_count': len([i for i in quality_issues if i['severity'] == 'error']),
             'warning_count': len([i for i in quality_issues if i['severity'] == 'warning']),
             'removed_events_percentage': round((comparison['removed'] / comparison['total_previous']) * 100, 2) if comparison['total_previous'] > 0 else 0,
-            'added_events_percentage': round((comparison['added'] / comparison['total_current']) * 100, 2) if comparison['total_current'] > 0 else 0
+            'added_events_percentage': round((comparison['added'] / comparison['total_current']) * 100, 2) if comparison['total_current'] > 0 else 0,
+            'description_stats': description_stats
         },
         'added_events': comparison['added_events'],
         'removed_events': comparison['removed_events'],
@@ -440,6 +527,15 @@ def print_console_summary(comparison: Dict[str, Any], source: str,
     print(f"  Added: {comparison['added']} events")
     print(f"  Removed: {comparison['removed']} events")
     print(f"  Unchanged: {comparison['unchanged']} events")
+    
+    # Calculate and show description statistics
+    current_events = get_events_for_run(current_run.id)
+    description_stats = calculate_description_stats(current_events)
+    if description_stats['total_events'] > 0:
+        print(f"\nDescription Extraction:")
+        print(f"  Events with descriptions: {description_stats['events_with_descriptions']}/{description_stats['total_events']} ({description_stats['description_extraction_rate']}%)")
+        if description_stats['events_with_descriptions'] > 0:
+            print(f"  Average description length: {description_stats['average_description_length']:.0f} characters")
     
     # Highlight removed events prominently
     if comparison['removed'] > 0:
