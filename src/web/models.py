@@ -104,11 +104,8 @@ class CleanEvent(Base):
     # Coordinates (nullable)
     latitude = Column(Float)
     longitude = Column(Float)
-    # Distance and travel times (nullable)
-    haversine_distance_miles = Column(Float)
-    driving_time_min = Column(Integer)
-    walking_time_min = Column(Integer)
-    subway_time_min = Column(Integer)
+    # Note: Travel times come from Venue table via venue_ref relationship, not stored here
+    new = Column(Boolean, default=False)  # Mark events as new when first added
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

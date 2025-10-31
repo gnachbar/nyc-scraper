@@ -66,7 +66,7 @@ def run_scraper(source: str) -> ScraperResult:
             ['node', f'src/scrapers/{source}.js'],
             capture_output=True,
             text=True,
-            timeout=600  # 10 minute timeout
+            timeout=960  # 16 minute timeout (longer than 15min BrowserBase session limit to allow cleanup)
         )
         
         duration = (datetime.now() - start_time).total_seconds()
