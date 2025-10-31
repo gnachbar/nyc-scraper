@@ -105,6 +105,33 @@ def get_raw_events_for_run(scrape_run_id: int) -> List[RawEvent]:
         session.close()
 
 
+def get_existing_events_signature(source: str, session) -> set:
+    """
+    Get a signature set of existing events before clearing.
+    Returns a set of tuples (title, start_time, display_venue) to identify events.
+    """
+    try:
+        existing_events = session.query(CleanEvent).filter(
+            CleanEvent.source == source
+        ).all()
+        
+        # Create signatures for matching
+        signatures = set()
+        for event in existing_events:
+            # Use title, start_time, and display_venue as unique identifier
+            signature = (
+                event.title or '',
+                event.start_time.isoformat() if event.start_time else '',
+                event.display_venue or ''
+            )
+            signatures.add(signature)
+        
+        return signatures
+    except Exception as e:
+        logger.error(f"Error getting existing events signature for {source}: {e}")
+        return set()
+
+
 def clear_existing_clean_events(source: str, session) -> int:
     """
     Clear existing clean events for a source before processing latest run.
@@ -574,7 +601,11 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
         clean_events_created = 0
         quality_issues = 0
         
-        # STEP 3: Clear existing clean events for this source (to avoid stale data)
+        # STEP 3: Get signature of existing events before clearing (to mark new events)
+        existing_signatures = get_existing_events_signature(source, session)
+        logger.info(f"Found {len(existing_signatures)} existing events to compare against")
+        
+        # STEP 4: Clear existing clean events for this source (to avoid stale data)
         cleared_count = clear_existing_clean_events(source, session)
         
         # ARCHITECTURE ENFORCEMENT: We NEVER modify raw_events table - only read from it
@@ -586,6 +617,9 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
             for event in duplicate_group:
                 processed_ids.add(event.id)
         
+        # Track clean events to mark as new
+        new_clean_events = []
+        
         for event in raw_events:
             if event.id not in processed_ids:
                 # Create clean event from single event
@@ -593,6 +627,7 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
                 if clean_event:
                     clean_events_created += 1
                     quality_issues += len(validate_event_quality(event))
+                    new_clean_events.append(clean_event)
         
         # Process duplicate groups
         for duplicate_group in duplicates:
@@ -602,8 +637,29 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
                 if clean_event:
                     clean_events_created += 1
                     quality_issues += len(validate_event_quality(merged_event))
+                    new_clean_events.append(clean_event)
+        
+        # Mark events as "new" if they didn't exist before
+        # Flush to ensure events have IDs assigned
+        session.flush()
+        
+        new_count = 0
+        for clean_event in new_clean_events:
+            # Create signature for this event
+            signature = (
+                clean_event.title or '',
+                clean_event.start_time.isoformat() if clean_event.start_time else '',
+                clean_event.display_venue or ''
+            )
+            # Mark as new if not in existing signatures
+            if signature not in existing_signatures:
+                clean_event.new = True
+                new_count += 1
         
         session.commit()
+        
+        if new_count > 0:
+            logger.info(f"Marked {new_count} events as NEW for {source}")
         
         processing_time = (datetime.now() - start_time).total_seconds()
         

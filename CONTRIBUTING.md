@@ -186,11 +186,12 @@ All scrapers must output events with this structure:
 
 ```typescript
 {
-  eventName: string,      // The name/title of the event
-  eventDate: string,      // The date of the event
-  eventTime: string,      // The time of the event (optional)
-  eventLocation: string,  // HARDCODED venue name
-  eventUrl: string        // URL to event details page
+  eventName: string,        // The name/title of the event
+  eventDate: string,        // The date of the event
+  eventTime: string,        // The time of the event (optional)
+  eventDescription: string, // The description of the event (optional)
+  eventLocation: string,    // HARDCODED venue name
+  eventUrl: string          // URL to event details page
 }
 ```
 
