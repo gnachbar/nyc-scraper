@@ -103,6 +103,7 @@ All scrapers use shared utility functions from `src/lib/` to reduce code duplica
 - `initStagehand(options)` - Initialize Stagehand with Browserbase. Returns initialized instance.
   - `options.env` - Environment ('BROWSERBASE' or 'LOCAL', default: 'BROWSERBASE')
   - `options.verbose` - Verbosity level (default: 1)
+  - `options.timeout` - Maximum session timeout in milliseconds (default: 900000 = 15 minutes)
 - `openBrowserbaseSession(sessionId)` - Open Browserbase session URL in default browser
 - `createStandardSchema(options)` - Create standardized event schema with Zod validation
   - `options.eventLocationDefault` - Default value for eventLocation field (for single-venue scrapers)
