@@ -72,7 +72,7 @@ export async function scrapeUnionHall() {
     // Step 3: Extract all visible events
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events from the calendar. For each event, get the event name/title, the date (like 'Oct 28', 'Nov 01', etc.), set eventLocation to 'Union Hall' for all events, and get the event URL by finding the link to the event detail page. Do not try to extract event time from this page - leave eventTime as empty string.",
+      "Extract all visible events from the calendar. For each event, get the event name/title, the date (like 'Oct 28', 'Nov 01', etc.), description (if visible), set eventLocation to 'Union Hall' for all events, and get the event URL by finding the link to the event detail page. Do not try to extract event time from this page - leave eventTime as empty string. If description is not visible, return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'union_hall' }
     );

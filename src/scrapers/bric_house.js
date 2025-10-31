@@ -64,6 +64,7 @@ export async function scrapeBRICHouse() {
         eventName: z.string(),
         eventDate: z.string(),
         eventTime: z.string().default(""),
+        eventDescription: z.string().default(""),
         eventUrl: z.string().url(),
         eventLocation: z.string().default("BRIC House")
       }))
@@ -78,6 +79,7 @@ export async function scrapeBRICHouse() {
 - eventName: The full name/title of the event
 - eventDate: The FULL date including day, month, and YEAR (e.g., "Monday, October 27, 2025" or "Oct 27, 2025")
 - eventTime: The time of the event if visible (e.g., "7:00 PM", "7:30 PM") - extract from the calendar if available
+- eventDescription: The event description if visible, otherwise return an empty string
 - eventUrl: The URL to the event (click on the event name to get the URL from the event page or link)
 - eventLocation: Set to 'BRIC House' for all events
 

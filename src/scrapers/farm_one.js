@@ -23,7 +23,7 @@ export async function scrapeFarmOne() {
     // Step 2: Extract all visible events from UPCOMING section only
     const result = await extractEventsFromPage(
       page,
-      "Extract all events from the UPCOMING section only. Do not extract events from the PAST EVENTS section. For each event, get the event name, date, time (if available), set eventLocation to 'Farm.One' for all events, and the URL to the event details page. Look for the 'More info' or 'BOOK' links to get the event page URL.",
+      "Extract all events from the UPCOMING section only. Do not extract events from the PAST EVENTS section. For each event, get the event name, date, time (if available), description (if available), set eventLocation to 'Farm.One' for all events, and the URL to the event details page. Look for the 'More info' or 'BOOK' links to get the event page URL. If description is not visible, return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'farm_one' }
     );

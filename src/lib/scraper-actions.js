@@ -114,7 +114,7 @@ export function validateExtractionResult(result, options = {}) {
  * @returns {Promise<Array>} Updated events array with eventTime populated
  */
 export async function extractEventTimesFromPages(stagehand, events, options = {}) {
-  const { timeout = 30000, delay = 500 } = options;
+  const { timeout = 30000, delay = 500, useNetworkIdle = true, domWaitMs = 2000, waitForSelector } = options;
   
   console.log(`Extracting event times from ${events.length} individual event pages...`);
   
@@ -128,8 +128,29 @@ export async function extractEventTimesFromPages(stagehand, events, options = {}
       eventPage = await stagehand.context.newPage();
       
       // Navigate to the event page with timeout
-      await eventPage.goto(event.eventUrl, { timeout });
-      await eventPage.waitForLoadState('networkidle', { timeout });
+      await eventPage.goto(event.eventUrl, { timeout, waitUntil: 'domcontentloaded' });
+      
+      // For sites with continuous network activity (e.g., analytics), avoid networkidle
+      if (useNetworkIdle) {
+        try {
+          await eventPage.waitForLoadState('networkidle', { timeout });
+        } catch (_) {
+          // Fallback to a short fixed wait if networkidle doesn't settle
+          await eventPage.waitForTimeout(domWaitMs);
+        }
+      } else {
+        // DOM is loaded; give hydration some time
+        await eventPage.waitForTimeout(domWaitMs);
+      }
+      
+      // Optionally wait for a specific selector if provided
+      if (waitForSelector) {
+        try {
+          await eventPage.waitForSelector(waitForSelector, { timeout });
+        } catch (_) {
+          // Continue; we'll still attempt extraction
+        }
+      }
       
       // Extract time information from the event page
       const timeResult = await eventPage.extract({

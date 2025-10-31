@@ -65,7 +65,7 @@ export async function scrapeBrooklynMuseum() {
     // Step 3: Extract all visible events
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events from the Brooklyn Museum programs page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), location (as eventLocation - set to 'Brooklyn Museum' for all events), and the URL (as eventUrl) from the actual href attribute of the event link element. Do NOT construct URLs from event names. Extract the real href value from the HTML. If the href is relative (starts with /), prepend 'https://www.brooklynmuseum.org' to make it absolute.",
+      "Extract all visible events from the Brooklyn Museum programs page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), description (as eventDescription, if available), location (as eventLocation - set to 'Brooklyn Museum' for all events), and the URL (as eventUrl) from the actual href attribute of the event link element. Do NOT construct URLs from event names. Extract the real href value from the HTML. If the href is relative (starts with /), prepend 'https://www.brooklynmuseum.org' to make it absolute. If description is not visible, return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'brooklyn_museum' }
     );

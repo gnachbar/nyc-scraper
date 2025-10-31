@@ -24,7 +24,7 @@ export async function scrapeProspectPark() {
       async () => {
         return await extractEventsFromPage(
           page,
-          "Extract all visible events on the current page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), subvenue/location (as eventLocation - this is the text below the event name like 'Grand Army Plaza', 'Prospect Park Zoo', etc.), and the URL (as eventUrl) by clicking on the event name to get the event page URL. If no time is visible on the page, return an empty string for eventTime.",
+          "Extract all visible events on the current page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), description (as eventDescription, if available), subvenue/location (as eventLocation - this is the text below the event name like 'Grand Army Plaza', 'Prospect Park Zoo', etc.), and the URL (as eventUrl) by clicking on the event name to get the event page URL. If no time is visible on the page, return an empty string for eventTime. If description is not visible, return an empty string for eventDescription.",
           StandardEventSchema,
           { sourceName: 'prospect_park' }
         );

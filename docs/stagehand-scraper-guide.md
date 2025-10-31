@@ -26,6 +26,7 @@
 - **Event Name** (string) - The name/title of the event
 - **Event Date** (string) - The date of the event  
 - **Event Time** (string, optional) - The time of the event
+- **Event Description** (string, optional) - The description of the event
 - **Event Location** (string) - **HARDCODED** venue name (NOT extracted from website)
 - **Event URL** (string) - The URL to the event details page
 
@@ -383,5 +384,6 @@ export async function scrapeMSGCalendar() {
 - Event Name (string)
 - Event Date (string) 
 - Event Time (string, optional)
+- Event Description (string, optional)
 - Event Location (string) - **HARDCODED** venue name
 - Event URL (string)

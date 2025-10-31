@@ -30,8 +30,9 @@ import re
 # Add parent directory to path to import our modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal
+from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal, Venue
 from src.logger import get_logger
+from src.lib.google_maps import geocode_place, GoogleMapsError
 
 # Import fuzzy matching
 try:
@@ -628,6 +629,34 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
         session.close()
 
 
+def get_or_create_venue(session, name: str, location_text: str) -> Venue:
+    name = (name or '').strip()
+    location_text = (location_text or '').strip()
+    # find existing
+    venue = session.query(Venue).filter(
+        Venue.name == name,
+        Venue.location_text == (location_text or None)
+    ).first()
+    if venue:
+        return venue
+    # create new (geocode once)
+    venue = Venue(name=name, location_text=location_text or None)
+    try:
+        query = ' '.join([p for p in [name, location_text] if p])
+        if query:
+            geo = geocode_place(query)
+            if geo:
+                venue.latitude = float(geo.get('lat')) if geo.get('lat') is not None else None
+                venue.longitude = float(geo.get('lng')) if geo.get('lng') is not None else None
+    except GoogleMapsError as e:
+        logger.warning(f"Venue geocoding failed for '{name}': {e}")
+    except Exception as e:
+        logger.warning(f"Unexpected venue geocoding error for '{name}': {e}")
+    session.add(venue)
+    session.flush()
+    return venue
+
+
 def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
     """
     Create a clean event from a raw event.
@@ -648,6 +677,9 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
         else:
             display_venue = venue_name
         
+        # Resolve normalized venue once; do not compute per-event distances/times
+        venue_obj = get_or_create_venue(session, display_venue, raw_event.location or '')
+
         # Create clean event (WRITE ONLY to clean_events table)
         clean_event = CleanEvent(
             title=standardize_title(raw_event.title),
@@ -662,7 +694,8 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
             url=raw_event.url,
             image_url=raw_event.image_url,
             source=raw_event.source,
-            source_urls=[raw_event.url] if raw_event.url else []
+            source_urls=[raw_event.url] if raw_event.url else [],
+            venue_id=venue_obj.id
         )
         
         # Add to session (clean_events table only)
@@ -741,7 +774,7 @@ def main():
     """Main CLI interface for the data cleaning pipeline."""
     parser = argparse.ArgumentParser(description='Clean and deduplicate event data')
     parser.add_argument('--source', 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records'],
                        help='Clean events for specific source (default: all sources)')
     parser.add_argument('--run-id', type=int,
                        help='Clean events for specific scrape run ID')

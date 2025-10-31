@@ -4,10 +4,10 @@ Flask web application for NYC Events Scraper
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_cors import CORS
 from sqlalchemy import desc, and_, or_
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, joinedload
 from datetime import datetime, timedelta
 import os
-from src.web.models import CleanEvent, engine, Base
+from src.web.models import CleanEvent, Venue, engine, Base
 from src.config import Config
 from src.logger import get_logger
 
@@ -38,15 +38,94 @@ def index():
         
         # Get pagination parameters
         page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
+        per_page = min(request.args.get('per_page', 100, type=int), 100)
         venue_filter = request.args.get('venue', '')
+        date_shortcut = request.args.get('date_shortcut', '')  # today, this_weekend, next_weekend
+        date_start_param = request.args.get('date_start', '')  # YYYY-MM-DD
+        date_end_param = request.args.get('date_end', '')  # YYYY-MM-DD
+        max_time = request.args.get('max_time', type=int)
+        modes = request.args.get('modes', '', type=str)
         
-        # Build query - get all events ordered by start time
-        query = db.query(CleanEvent).order_by(CleanEvent.start_time)
+        # Base query
+        query = db.query(CleanEvent).options(joinedload(CleanEvent.venue_ref))
+
+        # Date filtering
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        date_from = today_start
+        date_to = None
+
+        # Apply shortcut filters
+        if date_shortcut == 'today':
+            date_from = today_start
+            date_to = today_start + timedelta(days=1)
+        elif date_shortcut in ('this_weekend', 'next_weekend'):
+            # Find the upcoming Friday relative to today
+            # Monday is 0, Sunday is 6; Friday is 5
+            weekday = today_start.weekday()
+            days_until_friday = (4 - weekday) % 7  # 4 represents Friday (0-based: Mon=0)
+            # Correct Friday index: In Python, Monday=0, Friday=4
+            # Recompute with correct mapping
+            days_until_friday = (4 - weekday) % 7
+            first_friday = today_start + timedelta(days=days_until_friday)
+            if date_shortcut == 'next_weekend':
+                first_friday = first_friday + timedelta(days=7)
+            # Weekend window: Friday 00:00 to Monday 00:00
+            date_from = first_friday
+            date_to = first_friday + timedelta(days=3)
+
+        # Apply explicit date range if provided (overrides shortcut)
+        # Single date: only date_start provided -> filter that day
+        # Range: both provided -> inclusive of both days
+        start_dt = None
+        end_dt = None
+        if date_start_param:
+            try:
+                start_dt = datetime.strptime(date_start_param, '%Y-%m-%d')
+            except ValueError:
+                start_dt = None
+        if date_end_param:
+            try:
+                end_dt = datetime.strptime(date_end_param, '%Y-%m-%d')
+            except ValueError:
+                end_dt = None
+
+        if start_dt and end_dt:
+            # Inclusive range [start_dt, end_dt]
+            date_from = start_dt
+            date_to = end_dt + timedelta(days=1)
+        elif start_dt and not end_dt:
+            # Single day selection
+            date_from = start_dt
+            date_to = start_dt + timedelta(days=1)
+
+        # Default: from today onward
+        if date_from:
+            query = query.filter(CleanEvent.start_time >= date_from)
+        if date_to:
+            query = query.filter(CleanEvent.start_time < date_to)
+
+        # Order by start time
+        query = query.order_by(CleanEvent.start_time)
         
         # Apply venue filter if provided (use display_venue for filtering)
         if venue_filter:
             query = query.filter(CleanEvent.display_venue == venue_filter)
+        
+        # Apply distance/time filter if provided
+        if max_time and modes:
+            mode_list = [m.strip().lower() for m in modes.split(',') if m.strip()]
+            if mode_list:
+                conditions = []
+                if 'walk' in mode_list or 'walking' in mode_list:
+                    conditions.append(CleanEvent.walking_time_min <= max_time)
+                if 'subway' in mode_list:
+                    conditions.append(CleanEvent.subway_time_min <= max_time)
+                if 'drive' in mode_list or 'driving' in mode_list:
+                    conditions.append(CleanEvent.driving_time_min <= max_time)
+                
+                if conditions:
+                    # Join with OR logic - event matches if ANY mode meets the time requirement
+                    query = query.filter(or_(*conditions))
         
         # Get total events count before pagination
         total_events = query.count()
@@ -76,7 +155,12 @@ def index():
                              has_prev=has_prev,
                              has_next=has_next,
                              venues=venues,
-                             venue_filter=venue_filter)
+                             venue_filter=venue_filter,
+                             date_shortcut=date_shortcut,
+                             date_start=date_start_param,
+                             date_end=date_end_param,
+                             max_time=max_time if max_time else 60,
+                             modes=modes if modes else 'walk,subway,drive')
     
     except Exception as e:
         logger.error(f"Error in index route: {e}")
@@ -128,10 +212,12 @@ def api_events():
         category = request.args.get('category', '', type=str)
         date_from = request.args.get('date_from', '', type=str)
         date_to = request.args.get('date_to', '', type=str)
+        max_time = request.args.get('max_time', type=int)
+        modes = request.args.get('modes', '', type=str)
         response_format = request.args.get('format', 'json', type=str)
         
         # Build query
-        query = db.query(CleanEvent)
+        query = db.query(CleanEvent).options(joinedload(CleanEvent.venue_ref))
         
         # Apply filters
         if search:
@@ -163,6 +249,22 @@ def api_events():
             except ValueError:
                 pass
         
+        # Apply distance/time filter if provided
+        if max_time and modes:
+            mode_list = [m.strip().lower() for m in modes.split(',') if m.strip()]
+            if mode_list:
+                conditions = []
+                if 'walk' in mode_list or 'walking' in mode_list:
+                    conditions.append(CleanEvent.walking_time_min <= max_time)
+                if 'subway' in mode_list:
+                    conditions.append(CleanEvent.subway_time_min <= max_time)
+                if 'drive' in mode_list or 'driving' in mode_list:
+                    conditions.append(CleanEvent.driving_time_min <= max_time)
+                
+                if conditions:
+                    # Join with OR logic - event matches if ANY mode meets the time requirement
+                    query = query.filter(or_(*conditions))
+        
         # Order by start time
         query = query.order_by(CleanEvent.start_time)
         
@@ -183,6 +285,15 @@ def api_events():
                 'end_time': event.end_time.isoformat() if event.end_time else None,
                 'location': event.location,
                 'venue': event.venue,
+                'venue_id': event.venue_id,
+                'venue_name': event.venue_ref.name if event.venue_ref else None,
+                'venue_location_text': event.venue_ref.location_text if event.venue_ref else None,
+                'venue_latitude': event.venue_ref.latitude if event.venue_ref else None,
+                'venue_longitude': event.venue_ref.longitude if event.venue_ref else None,
+                'haversine_distance_miles': event.venue_ref.haversine_distance_miles if event.venue_ref else None,
+                'driving_time_min': event.venue_ref.driving_time_min if event.venue_ref else None,
+                'walking_time_min': event.venue_ref.walking_time_min if event.venue_ref else None,
+                'subway_time_min': event.venue_ref.subway_time_min if event.venue_ref else None,
                 'price_range': event.price_range,
                 'category': event.category,
                 'url': event.url,
@@ -226,7 +337,9 @@ def api_events():
                 'venue': venue,
                 'category': category,
                 'date_from': date_from,
-                'date_to': date_to
+                'date_to': date_to,
+                'max_time': max_time,
+                'modes': modes
             }
         }
         
