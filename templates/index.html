@@ -86,6 +86,39 @@
             </div>
         </form>
     </aside>
+    <aside class="right-sidebar" id="right-sidebar">
+        <div class="right-sidebar-header">
+            <h2>Event Details</h2>
+            <button type="button" class="right-sidebar-close" aria-label="Close">✕</button>
+        </div>
+        <div class="right-sidebar-content">
+            <div class="detail-section">
+                <h3 id="detail-title">Event Title</h3>
+                <div class="detail-description" id="detail-description">
+                    <p>-</p>
+                </div>
+            </div>
+            <div class="detail-section">
+                <h3>Distance & Travel Times</h3>
+                <div class="detail-item">
+                    <span class="detail-label">Distance:</span>
+                    <span class="detail-value" id="detail-distance">-</span> mi
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Drive:</span>
+                    <span class="detail-value" id="detail-drive">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Walk:</span>
+                    <span class="detail-value" id="detail-walk">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Subway:</span>
+                    <span class="detail-value" id="detail-subway">-</span>
+                </div>
+            </div>
+        </div>
+    </aside>
     <div class="main-content">
         {% if events %}
         <div class="events-table-container">
@@ -97,10 +130,7 @@
                         <th>Date</th>
                         <th>Start Time</th>
                         <th>Venue Name</th>
-                        <th>Distance (mi)</th>
-                        <th>Drive</th>
-                        <th>Walk</th>
-                        <th>Subway</th>
+                        <th>More Info</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -113,6 +143,9 @@
                                 </a>
                             {% else %}
                                 {{ event.title }}
+                            {% endif %}
+                            {% if event.new %}
+                                <span class="new-badge">NEW</span>
                             {% endif %}
                         </td>
                         <td class="event-dow">
@@ -143,33 +176,16 @@
                                 -
                             {% endif %}
                         </td>
-                        <td class="event-distance">
-                            {% if event.venue_ref and event.venue_ref.haversine_distance_miles is not none %}
-                                {{ event.venue_ref.haversine_distance_miles|round(1) }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td class="event-drive">
-                            {% if event.venue_ref and event.venue_ref.driving_time_min is not none %}
-                                {{ event.venue_ref.driving_time_min }} min
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td class="event-walk">
-                            {% if event.venue_ref and event.venue_ref.walking_time_min is not none %}
-                                {{ event.venue_ref.walking_time_min }} min
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <td class="event-subway">
-                            {% if event.venue_ref and event.venue_ref.subway_time_min is not none %}
-                                {{ event.venue_ref.subway_time_min }} min
-                            {% else %}
-                                -
-                            {% endif %}
+                        <td class="event-more-info">
+                            <button type="button" class="more-info-btn" data-event-id="{{ event.id }}" 
+                                    data-title="{{ event.title|e }}"
+                                    data-description="{% if event.description %}{{ event.description|replace('"', '&quot;')|replace('\n', '\\n')|e }}{% endif %}"
+                                    data-distance="{% if event.venue_ref and event.venue_ref.haversine_distance_miles is not none %}{{ event.venue_ref.haversine_distance_miles|round(1) }}{% else %}-{% endif %}"
+                                    data-drive="{% if event.venue_ref and event.venue_ref.driving_time_min is not none %}{{ event.venue_ref.driving_time_min }}{% else %}-{% endif %}"
+                                    data-walk="{% if event.venue_ref and event.venue_ref.walking_time_min is not none %}{{ event.venue_ref.walking_time_min }}{% else %}-{% endif %}"
+                                    data-subway="{% if event.venue_ref and event.venue_ref.subway_time_min is not none %}{{ event.venue_ref.subway_time_min }}{% else %}-{% endif %}">
+                                More Info
+                            </button>
                         </td>
                     </tr>
                     {% endfor %}
