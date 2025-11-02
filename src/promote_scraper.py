@@ -16,6 +16,10 @@ import argparse
 from pathlib import Path
 from typing import List
 
+# App imports
+from src.web.models import SessionLocal, CleanEvent
+from src.lib.google_maps import geocode_place, GoogleMapsError
+
 
 def read_file_content(file_path: Path) -> str:
     """Read file content."""
@@ -293,6 +297,75 @@ def run_first_production_test(source: str) -> bool:
         return False
 
 
+def geocode_new_source_coords(source: str) -> bool:
+    """Step 4: Geocode unique venues for the newly promoted source and update coords."""
+    print(f"\n{'='*80}")
+    print(f"STEP 4: Geocode Venue Coordinates for '{source}'")
+    print(f"{'='*80}\n")
+
+    session = SessionLocal()
+    try:
+        # Find unique (venue, location) for this source with missing coords
+        pairs = session.query(CleanEvent.venue, CleanEvent.location).filter(
+            CleanEvent.source == source,
+            (CleanEvent.latitude == None) | (CleanEvent.longitude == None)
+        ).distinct().all()
+
+        if not pairs:
+            print("No missing coordinates for this source. Skipping.")
+            return True
+
+        print(f"Found {len(pairs)} unique venue/location pairs needing coordinates.")
+        resolved = 0
+        updated_rows = 0
+
+        for venue, location in pairs:
+            query_parts = [p for p in [venue or '', location or ''] if p]
+            if not query_parts:
+                continue
+            query = ' '.join(query_parts)
+            try:
+                geo = geocode_place(query)
+                if geo and geo.get('lat') is not None and geo.get('lng') is not None:
+                    lat = float(geo['lat']); lng = float(geo['lng'])
+                    # Update all rows for this venue/location
+                    q = session.query(CleanEvent).filter(
+                        CleanEvent.source == source,
+                        (CleanEvent.latitude == None) | (CleanEvent.longitude == None)
+                    )
+                    if venue:
+                        q = q.filter(CleanEvent.venue == venue)
+                    else:
+                        q = q.filter((CleanEvent.venue == None) | (CleanEvent.venue == ''))
+                    if location:
+                        q = q.filter(CleanEvent.location == location)
+                    else:
+                        q = q.filter((CleanEvent.location == None) | (CleanEvent.location == ''))
+
+                    rows = q.all()
+                    for row in rows:
+                        row.latitude = lat
+                        row.longitude = lng
+                        updated_rows += 1
+                    resolved += 1
+                else:
+                    print(f"Could not geocode '{query}'")
+            except GoogleMapsError as e:
+                print(f"Geocode error for '{query}': {e}")
+            except Exception as e:
+                print(f"Unexpected error for '{query}': {e}")
+
+        session.commit()
+        print(f"\n✓ Geocoding complete: {resolved}/{len(pairs)} pairs resolved, {updated_rows} rows updated")
+        return True
+    except Exception as e:
+        session.rollback()
+        print(f"✗ Geocoding step failed: {e}")
+        return False
+    finally:
+        session.close()
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description='Promote a staging scraper to production')
@@ -349,6 +422,10 @@ def main():
     else:
         print("\n⚠ Skipping first production test (--skip-test flag)")
         print(f"  Run manually: python src/run_pipeline.py --source {args.source}")
+    
+    # Step 4: Geocode venue coordinates for this source
+    if not geocode_new_source_coords(args.source):
+        print("\n⚠ Geocoding step encountered issues. You can retry later with:\n   python src/promote_scraper.py {args.source} --skip-test")
     
     # Success summary
     print(f"\n{'='*80}")

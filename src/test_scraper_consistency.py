@@ -72,7 +72,7 @@ def test_schema_consistency(source: str) -> tuple[bool, list[str]]:
     content = read_scraper_file(source)
     schema = extract_schema(content)
     
-    required_fields = ['eventName', 'eventDate', 'eventTime', 'eventLocation', 'eventUrl']
+    required_fields = ['eventName', 'eventDate', 'eventTime', 'eventDescription', 'eventLocation', 'eventUrl']
     missing = [field for field in required_fields if not schema.get(field)]
     
     return len(missing) == 0, missing

@@ -25,7 +25,7 @@ export async function scrapeRoulette() {
       async () => {
         return await extractEventsFromPage(
           page,
-          "Extract all visible events on the current page. For each event, get the event name, date, time (if available), and the event URL by extracting the href attribute from the event name link. Set eventLocation to 'Roulette' for all events. Make sure to extract the full absolute URL.",
+          "Extract all visible events on the current page. For each event, get the event name, date, time (if available), description (if available), and the event URL by extracting the href attribute from the event name link. Set eventLocation to 'Roulette' for all events. Make sure to extract the full absolute URL. If description is not visible, return an empty string for eventDescription.",
           StandardEventSchema,
           { sourceName: 'roulette' }
         );

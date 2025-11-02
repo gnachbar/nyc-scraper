@@ -5,19 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}NYC Events{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>NYC Events</h1>
-            <p class="subtitle">Discover events happening around New York City</p>
-        </div>
-    </header>
-
-    <div class="container">
-        {% block content %}{% endblock %}
-    </div>
-    
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block content %}{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=2"></script>
 </body>
 </html>

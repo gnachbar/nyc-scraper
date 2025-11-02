@@ -33,7 +33,7 @@ export async function scrapeBarclaysCenter() {
     // Step 4: Extract all events from the page
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events. For each event, get the event name, date, and extract the href attribute from the event link (NOT the 'Buy Tickets' button link) to get the event page URL. Make sure to extract the full absolute URL. Set eventLocation to 'Barclays Center' for all events. The event time is not visible on the listing page - return an empty string for eventTime as it will be extracted from individual pages later.",
+      "Extract all visible events. For each event, get the event name, date, description (if visible), and extract the href attribute from the event link (NOT the 'Buy Tickets' button link) to get the event page URL. Make sure to extract the full absolute URL. Set eventLocation to 'Barclays Center' for all events. The event time is not visible on the listing page - return an empty string for eventTime as it will be extracted from individual pages later. If description is not visible, return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'barclays_center' }
     );

@@ -83,7 +83,7 @@ export async function scrapeMSGCalendar() {
     // The shared utility automatically captures a screenshot if extraction fails
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), location (as eventLocation - set to 'Madison Square Garden' for all events), and the FULL URL (as eventUrl) from the href attribute of the 'View Event Details' link or the event card link by clicking on it. Extract the complete URL starting with https://www.msg.com/events-tickets/",
+      "Extract all visible events from the MSG calendar page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), description (as eventDescription, if available), location (as eventLocation - set to 'Madison Square Garden' for all events), and the FULL URL (as eventUrl) from the href attribute of the 'View Event Details' link or the event card link by clicking on it. Extract the complete URL starting with https://www.msg.com/events-tickets/",
       StandardEventSchema,
       { sourceName: 'msg_calendar' }
     );

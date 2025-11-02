@@ -2,13 +2,38 @@
 SQLAlchemy models for NYC Events Scraper
 """
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, JSON, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean, JSON, ForeignKey, Float, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from src.config import Config
 
 Base = declarative_base()
 
+
+class Venue(Base):
+    """Canonical venue with coordinates and travel metrics."""
+    __tablename__ = 'venues'
+    __table_args__ = (
+        UniqueConstraint('name', 'location_text', name='uq_venue_name_location'),
+    )
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(200), nullable=False)  # typically display_venue
+    location_text = Column(Text)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    haversine_distance_miles = Column(Float)
+    driving_time_min = Column(Integer)
+    walking_time_min = Column(Integer)
+    subway_time_min = Column(Integer)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # relationships
+    events = relationship('CleanEvent', back_populates='venue_ref')
+
+    def __repr__(self):
+        return f"<Venue(id={self.id}, name='{self.name}')>"
 
 class ScrapeRun(Base):
     """Track each scraping execution"""
@@ -34,7 +59,7 @@ class RawEvent(Base):
     source = Column(String(100), nullable=False)  # kings_theatre, prospect_park, brooklyn_paper
     source_id = Column(String(500))  # Original ID from source website
     title = Column(Text)
-    description = Column(Text)
+    description = Column(Text)  # Event description from scraper
     start_time = Column(DateTime)
     end_time = Column(DateTime)
     location = Column(Text)
@@ -61,7 +86,7 @@ class CleanEvent(Base):
     
     id = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)
-    description = Column(Text)
+    description = Column(Text)  # Event description from scraper
     start_time = Column(DateTime, nullable=False)  # Required field per PRD
     end_time = Column(DateTime)
     location = Column(Text)
@@ -73,6 +98,14 @@ class CleanEvent(Base):
     image_url = Column(Text)
     source = Column(String(100))  # Primary source
     source_urls = Column(JSON)  # All source URLs for this event
+    # Link to venue (normalized)
+    venue_id = Column(Integer, ForeignKey('venues.id'))
+    venue_ref = relationship('Venue', back_populates='events')
+    # Coordinates (nullable)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    # Note: Travel times come from Venue table via venue_ref relationship, not stored here
+    new = Column(Boolean, default=False)  # Mark events as new when first added
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

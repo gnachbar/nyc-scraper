@@ -26,7 +26,7 @@ export async function scrapeCrownHillTheatre() {
     // All events are already visible on load, no pagination needed
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events. For each event, get the event name, date, and extract the href attribute from the 'Tickets' link (NOT the event name link) to get the event page URL. Make sure to extract the full absolute URL. Set eventLocation to 'Crown Hill Theatre' for all events. The event time is not visible on the listing page - return an empty string for eventTime as it will be extracted from individual pages later.",
+      "Extract all visible events. For each event, get the event name, date, description (if visible), and extract the href attribute from the 'Tickets' link (NOT the event name link) to get the event page URL. Make sure to extract the full absolute URL. Set eventLocation to 'Crown Hill Theatre' for all events. The event time is not visible on the listing page - return an empty string for eventTime as it will be extracted from individual pages later. If description is not visible, return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'crown_hill_theatre' }
     );

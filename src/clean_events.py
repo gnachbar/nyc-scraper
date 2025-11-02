@@ -30,8 +30,9 @@ import re
 # Add parent directory to path to import our modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal
+from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal, Venue
 from src.logger import get_logger
+from src.lib.google_maps import geocode_place, GoogleMapsError
 
 # Import fuzzy matching
 try:
@@ -102,6 +103,33 @@ def get_raw_events_for_run(scrape_run_id: int) -> List[RawEvent]:
         return []
     finally:
         session.close()
+
+
+def get_existing_events_signature(source: str, session) -> set:
+    """
+    Get a signature set of existing events before clearing.
+    Returns a set of tuples (title, start_time, display_venue) to identify events.
+    """
+    try:
+        existing_events = session.query(CleanEvent).filter(
+            CleanEvent.source == source
+        ).all()
+        
+        # Create signatures for matching
+        signatures = set()
+        for event in existing_events:
+            # Use title, start_time, and display_venue as unique identifier
+            signature = (
+                event.title or '',
+                event.start_time.isoformat() if event.start_time else '',
+                event.display_venue or ''
+            )
+            signatures.add(signature)
+        
+        return signatures
+    except Exception as e:
+        logger.error(f"Error getting existing events signature for {source}: {e}")
+        return set()
 
 
 def clear_existing_clean_events(source: str, session) -> int:
@@ -573,7 +601,11 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
         clean_events_created = 0
         quality_issues = 0
         
-        # STEP 3: Clear existing clean events for this source (to avoid stale data)
+        # STEP 3: Get signature of existing events before clearing (to mark new events)
+        existing_signatures = get_existing_events_signature(source, session)
+        logger.info(f"Found {len(existing_signatures)} existing events to compare against")
+        
+        # STEP 4: Clear existing clean events for this source (to avoid stale data)
         cleared_count = clear_existing_clean_events(source, session)
         
         # ARCHITECTURE ENFORCEMENT: We NEVER modify raw_events table - only read from it
@@ -585,6 +617,9 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
             for event in duplicate_group:
                 processed_ids.add(event.id)
         
+        # Track clean events to mark as new
+        new_clean_events = []
+        
         for event in raw_events:
             if event.id not in processed_ids:
                 # Create clean event from single event
@@ -592,6 +627,7 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
                 if clean_event:
                     clean_events_created += 1
                     quality_issues += len(validate_event_quality(event))
+                    new_clean_events.append(clean_event)
         
         # Process duplicate groups
         for duplicate_group in duplicates:
@@ -601,8 +637,29 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
                 if clean_event:
                     clean_events_created += 1
                     quality_issues += len(validate_event_quality(merged_event))
+                    new_clean_events.append(clean_event)
+        
+        # Mark events as "new" if they didn't exist before
+        # Flush to ensure events have IDs assigned
+        session.flush()
+        
+        new_count = 0
+        for clean_event in new_clean_events:
+            # Create signature for this event
+            signature = (
+                clean_event.title or '',
+                clean_event.start_time.isoformat() if clean_event.start_time else '',
+                clean_event.display_venue or ''
+            )
+            # Mark as new if not in existing signatures
+            if signature not in existing_signatures:
+                clean_event.new = True
+                new_count += 1
         
         session.commit()
+        
+        if new_count > 0:
+            logger.info(f"Marked {new_count} events as NEW for {source}")
         
         processing_time = (datetime.now() - start_time).total_seconds()
         
@@ -628,6 +685,34 @@ def clean_events_for_source(source: str, scrape_run: ScrapeRun) -> CleaningStats
         session.close()
 
 
+def get_or_create_venue(session, name: str, location_text: str) -> Venue:
+    name = (name or '').strip()
+    location_text = (location_text or '').strip()
+    # find existing
+    venue = session.query(Venue).filter(
+        Venue.name == name,
+        Venue.location_text == (location_text or None)
+    ).first()
+    if venue:
+        return venue
+    # create new (geocode once)
+    venue = Venue(name=name, location_text=location_text or None)
+    try:
+        query = ' '.join([p for p in [name, location_text] if p])
+        if query:
+            geo = geocode_place(query)
+            if geo:
+                venue.latitude = float(geo.get('lat')) if geo.get('lat') is not None else None
+                venue.longitude = float(geo.get('lng')) if geo.get('lng') is not None else None
+    except GoogleMapsError as e:
+        logger.warning(f"Venue geocoding failed for '{name}': {e}")
+    except Exception as e:
+        logger.warning(f"Unexpected venue geocoding error for '{name}': {e}")
+    session.add(venue)
+    session.flush()
+    return venue
+
+
 def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
     """
     Create a clean event from a raw event.
@@ -648,6 +733,9 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
         else:
             display_venue = venue_name
         
+        # Resolve normalized venue once; do not compute per-event distances/times
+        venue_obj = get_or_create_venue(session, display_venue, raw_event.location or '')
+
         # Create clean event (WRITE ONLY to clean_events table)
         clean_event = CleanEvent(
             title=standardize_title(raw_event.title),
@@ -662,7 +750,8 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
             url=raw_event.url,
             image_url=raw_event.image_url,
             source=raw_event.source,
-            source_urls=[raw_event.url] if raw_event.url else []
+            source_urls=[raw_event.url] if raw_event.url else [],
+            venue_id=venue_obj.id
         )
         
         # Add to session (clean_events table only)
@@ -741,7 +830,7 @@ def main():
     """Main CLI interface for the data cleaning pipeline."""
     parser = argparse.ArgumentParser(description='Clean and deduplicate event data')
     parser.add_argument('--source', 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records'],
                        help='Clean events for specific source (default: all sources)')
     parser.add_argument('--run-id', type=int,
                        help='Clean events for specific scrape run ID')

@@ -32,7 +32,7 @@ export async function scrapeKingsTheatre() {
     // Step 5: Extract the required data for all events on the page
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events. For each event, get the event name, date, and the URL by clicking on the 'See more' button (NOT the 'Buy tickets' button) to get the event page URL. Set eventLocation to 'Kings Theatre' for all events. If time is visible on the listing, include it as eventTime. If no time is visible, return an empty string for eventTime.",
+      "Extract all visible events. For each event, get the event name, date, description (if visible), and the URL by clicking on the 'See more' button (NOT the 'Buy tickets' button) to get the event page URL. Set eventLocation to 'Kings Theatre' for all events. If time is visible on the listing, include it as eventTime. If no time is visible, return an empty string for eventTime. If description is not visible, return an empty string for eventDescription.",
       StandardEventSchema,
       { sourceName: 'kings_theatre' }
     );

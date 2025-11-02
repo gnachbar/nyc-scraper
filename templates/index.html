@@ -3,99 +3,226 @@
 {% block title %}NYC Events - Home{% endblock %}
 
 {% block content %}
-<div class="filter-container">
-    <form method="GET" action="{{ url_for('index') }}" class="venue-filter-form">
-        <label for="venue-filter">Filter by Venue:</label>
-        <select name="venue" id="venue-filter" onchange="this.form.submit()">
-            <option value="">All Venues</option>
-            {% for venue in venues %}
-                <option value="{{ venue }}" {% if venue_filter == venue %}selected{% endif %}>
-                    {{ venue }}
-                </option>
-            {% endfor %}
-        </select>
-    </form>
-</div>
+<div class="page-layout">
+    <aside class="sidebar" aria-label="Filters">
+        <button type="button" class="sidebar-expand-btn" aria-controls="sidebar" aria-expanded="false" title="Expand Filters">→</button>
+        <form method="GET" action="{{ url_for('index') }}" class="filter-form">
+            <div class="sidebar-content">
+                <div class="sidebar-header">
+                    <h1>NYC Events</h1>
+                    <button type="button" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="true">←</button>
+                </div>
+                
+                <div class="filter-container">
+                    <div class="filter-section">
+                        <label for="venue-filter">Venue</label>
+                        <select name="venue" id="venue-filter" onchange="this.form.submit()">
+                            <option value="">All Venues</option>
+                            {% for venue in venues %}
+                                <option value="{{ venue }}" {% if venue_filter == venue %}selected{% endif %}>
+                                    {{ venue }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <label for="date-shortcut">Period</label>
+                        <select name="date_shortcut" id="date-shortcut" onchange="this.form.submit()">
+                            <option value="">All upcoming</option>
+                            <option value="today" {% if date_shortcut == 'today' %}selected{% endif %}>Today</option>
+                            <option value="this_weekend" {% if date_shortcut == 'this_weekend' %}selected{% endif %}>This weekend</option>
+                            <option value="next_weekend" {% if date_shortcut == 'next_weekend' %}selected{% endif %}>Next weekend</option>
+                        </select>
+                    </div>
 
-{% if events %}
-    
-    <div class="events-table-container">
-        <table class="events-table">
-            <thead>
-                <tr>
-                    <th>Event Name</th>
-                    <th>Date</th>
-                    <th>Start Time</th>
-                    <th>Venue Name</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for event in events %}
-                <tr>
-                    <td class="event-name">
-                        {% if event.url %}
-                            <a href="{{ event.url }}" target="_blank" class="event-link">
+                    <div class="filter-section">
+                        <label for="date-range">Date</label>
+                        <input type="text" id="date-range" placeholder="Select date or range" data-start="{{ date_start or '' }}" data-end="{{ date_end or '' }}" />
+                        <input type="hidden" name="date_start" id="date_start_hidden" value="{{ date_start or '' }}" />
+                        <input type="hidden" name="date_end" id="date_end_hidden" value="{{ date_end or '' }}" />
+                    </div>
+
+                    <div class="filter-section">
+                        <label for="time-slider">
+                            Max Travel Time: <span id="time-value">{{ max_time or 60 }}</span> min
+                        </label>
+                        <div class="slider-wrapper">
+                            <input type="range" 
+                                   id="time-slider" 
+                                   name="time-slider" 
+                                   min="0" 
+                                   max="60" 
+                                   value="{{ max_time or 60 }}" 
+                                   step="5" />
+                            <div class="slider-ticks">
+                                <span class="tick"></span>
+                                <span class="tick"></span>
+                                <span class="tick"></span>
+                                <span class="tick"></span>
+                                <span class="tick"></span>
+                            </div>
+                        </div>
+                        <div class="slider-labels">
+                            <span>0</span>
+                            <span>15</span>
+                            <span>30</span>
+                            <span>45</span>
+                            <span>60</span>
+                        </div>
+                        
+                        <label class="modes-label">Transport Modes:</label>
+                        <div class="toggle-pills-container">
+                            <button type="button" class="toggle-pill" data-mode="walk">Walk</button>
+                            <button type="button" class="toggle-pill" data-mode="subway">Subway</button>
+                            <button type="button" class="toggle-pill" data-mode="drive">Drive</button>
+                        </div>
+                        
+                        <!-- Hidden inputs for form submission -->
+                        <input type="hidden" name="max_time" id="max_time_hidden" value="{{ max_time or 60 }}" />
+                        <input type="hidden" name="modes" id="modes_hidden" value="{{ modes or 'walk,subway,drive' }}" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    </aside>
+    <aside class="right-sidebar" id="right-sidebar">
+        <div class="right-sidebar-header">
+            <h2>Event Details</h2>
+            <button type="button" class="right-sidebar-close" aria-label="Close">✕</button>
+        </div>
+        <div class="right-sidebar-content">
+            <div class="detail-section">
+                <h3 id="detail-title">Event Title</h3>
+                <div class="detail-description" id="detail-description">
+                    <p>-</p>
+                </div>
+            </div>
+            <div class="detail-section">
+                <h3>Distance & Travel Times</h3>
+                <div class="detail-item">
+                    <span class="detail-label">Distance:</span>
+                    <span class="detail-value" id="detail-distance">-</span> mi
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Drive:</span>
+                    <span class="detail-value" id="detail-drive">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Walk:</span>
+                    <span class="detail-value" id="detail-walk">-</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Subway:</span>
+                    <span class="detail-value" id="detail-subway">-</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <div class="main-content">
+        {% if events %}
+        <div class="events-table-container">
+            <table class="events-table">
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Day</th>
+                        <th>Date</th>
+                        <th>Start Time</th>
+                        <th>Venue Name</th>
+                        <th>More Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td class="event-name">
+                            {% if event.url %}
+                                <a href="{{ event.url }}" target="_blank" class="event-link">
+                                    {{ event.title }}
+                                </a>
+                            {% else %}
                                 {{ event.title }}
-                            </a>
-                        {% else %}
-                            {{ event.title }}
-                        {% endif %}
-                    </td>
-                    <td class="event-date">
-                        {% if event.start_time %}
-                            {{ event.start_time.strftime('%m/%d/%y') }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td class="event-time">
-                        {% if event.start_time %}
-                            {{ event.start_time.strftime('%I:%M %p') }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td class="event-venue">
-                        {% if event.display_venue %}
-                            {{ event.display_venue }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                            {% endif %}
+                            {% if event.new %}
+                                <span class="new-badge">NEW</span>
+                            {% endif %}
+                        </td>
+                        <td class="event-dow">
+                            {% if event.start_time %}
+                                {{ event.start_time.strftime('%A') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="event-date">
+                            {% if event.start_time %}
+                                {{ event.start_time.strftime('%m/%d/%y') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="event-time">
+                            {% if event.start_time %}
+                                {{ event.start_time.strftime('%I:%M %p') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="event-venue">
+                            {% if event.display_venue %}
+                                {{ event.display_venue }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="event-more-info">
+                            <button type="button" class="more-info-btn" data-event-id="{{ event.id }}" 
+                                    data-title="{{ event.title|e }}"
+                                    data-description="{% if event.description %}{{ event.description|replace('"', '&quot;')|replace('\n', '\\n')|e }}{% endif %}"
+                                    data-distance="{% if event.venue_ref and event.venue_ref.haversine_distance_miles is not none %}{{ event.venue_ref.haversine_distance_miles|round(1) }}{% else %}-{% endif %}"
+                                    data-drive="{% if event.venue_ref and event.venue_ref.driving_time_min is not none %}{{ event.venue_ref.driving_time_min }}{% else %}-{% endif %}"
+                                    data-walk="{% if event.venue_ref and event.venue_ref.walking_time_min is not none %}{{ event.venue_ref.walking_time_min }}{% else %}-{% endif %}"
+                                    data-subway="{% if event.venue_ref and event.venue_ref.subway_time_min is not none %}{{ event.venue_ref.subway_time_min }}{% else %}-{% endif %}">
+                                More Info
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-    {% if total_pages > 1 %}
-    <div class="pagination">
-        {% if has_prev %}
-            <a href="{{ url_for('index', page=page-1, venue=venue_filter) }}">← Previous</a>
-        {% endif %}
-        
-        {% for p in range(1, total_pages + 1) %}
-            {% if p == page %}
-                <span class="current">{{ p }}</span>
-            {% elif p <= 5 or p > total_pages - 5 or (p >= page - 2 and p <= page + 2) %}
-                <a href="{{ url_for('index', page=p, venue=venue_filter) }}">{{ p }}</a>
-            {% elif p == 6 and page > 8 %}
-                <span>...</span>
-            {% elif p == total_pages - 5 and page < total_pages - 7 %}
-                <span>...</span>
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if has_prev %}
+                <a href="{{ url_for('index', page=page-1, venue=venue_filter, date_shortcut=date_shortcut, date_start=date_start, date_end=date_end, max_time=max_time if max_time else 60, modes=modes if modes else 'walk,subway,drive') }}">← Previous</a>
             {% endif %}
-        {% endfor %}
-        
-        {% if has_next %}
-            <a href="{{ url_for('index', page=page+1, venue=venue_filter) }}">Next →</a>
+            
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == page %}
+                    <span class="current">{{ p }}</span>
+                {% elif p <= 5 or p > total_pages - 5 or (p >= page - 2 and p <= page + 2) %}
+                    <a href="{{ url_for('index', page=p, venue=venue_filter, date_shortcut=date_shortcut, date_start=date_start, date_end=date_end, max_time=max_time if max_time else 60, modes=modes if modes else 'walk,subway,drive') }}">{{ p }}</a>
+                {% elif p == 6 and page > 8 %}
+                    <span>...</span>
+                {% elif p == total_pages - 5 and page < total_pages - 7 %}
+                    <span>...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if has_next %}
+                <a href="{{ url_for('index', page=page+1, venue=venue_filter, date_shortcut=date_shortcut, date_start=date_start, date_end=date_end, max_time=max_time if max_time else 60, modes=modes if modes else 'walk,subway,drive') }}">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="event-card">
+            <h3>No Events Found</h3>
+            <p>Try adjusting your search criteria or check back later for new events.</p>
+        </div>
         {% endif %}
     </div>
-    {% endif %}
-
-{% else %}
-    <div class="event-card">
-        <h3>No Events Found</h3>
-        <p>Try adjusting your search criteria or check back later for new events.</p>
-    </div>
-{% endif %}
+</div>
 {% endblock %}

@@ -234,12 +234,15 @@ def import_events(session, source: str, file_path: str, scrape_run_id: int) -> i
                 title = event_data.get('eventName', '')
                 event_date = event_data.get('eventDate', '')
                 event_time = event_data.get('eventTime', '')
+                event_description = event_data.get('eventDescription', '')
                 venue = event_data.get('eventLocation', '')
                 url = event_data.get('eventUrl', '')
                 
-                # Convert empty string to None for event_time (NULL in database)
+                # Convert empty string to None for event_time and event_description (NULL in database)
                 if event_time == '':
                     event_time = None
+                if event_description == '':
+                    event_description = None
                 
                 # Parse datetime
                 start_time = parse_event_datetime(event_date, event_time)
@@ -252,6 +255,7 @@ def import_events(session, source: str, file_path: str, scrape_run_id: int) -> i
                     source=source,
                     source_id=source_id,
                     title=title,
+                    description=event_description,
                     start_time=start_time,
                     venue=venue,
                     url=url,
@@ -286,7 +290,7 @@ def main():
     args = parser.parse_args()
     
     # Validate source
-    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house']
+    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records']
     if args.source not in valid_sources:
         logger.error(f"Invalid source '{args.source}'. Must be one of: {valid_sources}")
         sys.exit(1)

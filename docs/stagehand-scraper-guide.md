@@ -26,6 +26,7 @@
 - **Event Name** (string) - The name/title of the event
 - **Event Date** (string) - The date of the event  
 - **Event Time** (string, optional) - The time of the event
+- **Event Description** (string, optional) - The description of the event
 - **Event Location** (string) - **HARDCODED** venue name (NOT extracted from website)
 - **Event URL** (string) - The URL to the event details page
 
@@ -102,6 +103,7 @@ All scrapers use shared utility functions from `src/lib/` to reduce code duplica
 - `initStagehand(options)` - Initialize Stagehand with Browserbase. Returns initialized instance.
   - `options.env` - Environment ('BROWSERBASE' or 'LOCAL', default: 'BROWSERBASE')
   - `options.verbose` - Verbosity level (default: 1)
+  - `options.timeout` - Maximum session timeout in milliseconds (default: 900000 = 15 minutes)
 - `openBrowserbaseSession(sessionId)` - Open Browserbase session URL in default browser
 - `createStandardSchema(options)` - Create standardized event schema with Zod validation
   - `options.eventLocationDefault` - Default value for eventLocation field (for single-venue scrapers)
@@ -383,5 +385,6 @@ export async function scrapeMSGCalendar() {
 - Event Name (string)
 - Event Date (string) 
 - Event Time (string, optional)
+- Event Description (string, optional)
 - Event Location (string) - **HARDCODED** venue name
 - Event URL (string)

@@ -66,7 +66,7 @@ def run_scraper(source: str) -> ScraperResult:
             ['node', f'src/scrapers/{source}.js'],
             capture_output=True,
             text=True,
-            timeout=600  # 10 minute timeout
+            timeout=960  # 16 minute timeout (longer than 15min BrowserBase session limit to allow cleanup)
         )
         
         duration = (datetime.now() - start_time).total_seconds()
@@ -366,7 +366,7 @@ def main():
     """Main orchestration logic"""
     parser = argparse.ArgumentParser(description='Run data pipeline for all scrapers')
     parser.add_argument('--source', 
-                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house'],
+                       choices=['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records'],
                        help='Run specific scraper only (default: all)')
     parser.add_argument('--skip-cleaning', action='store_true',
                        help='Skip cleaning step')
@@ -381,7 +381,7 @@ def main():
     if args.source:
         sources = [args.source]
     else:
-        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house']
+        sources = ['kings_theatre', 'msg_calendar', 'prospect_park', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records']
     
     # Create output directory if it doesn't exist
     output_dir = Path(args.output_dir)

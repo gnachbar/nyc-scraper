@@ -117,6 +117,7 @@ async function extractEventsFromSection(page, sectionName) {
       eventName: z.string(),
       eventDate: z.string(), // Can be single date or date range
       eventTime: z.string().default(""),
+      eventDescription: z.string().default(""),
       eventUrl: z.string(), // Temporarily not validating as URL to debug
       eventLocation: z.string().default("Brooklyn Academy of Music")
     }))
@@ -140,6 +141,7 @@ For each event card in the ${sectionName} section, get:
 - eventName: The full name/title of the event
 - eventDate: The FULL date including day, month, and YEAR. This can be a single date (e.g., "Monday, October 27, 2025") or a date range (e.g., "Oct 21—Oct 25, 2025" or "Dec 5—Dec 7, 2025")
 - eventTime: The time of the event if available, otherwise empty string
+- eventDescription: The event description if available, otherwise empty string
 - eventUrl: The complete URL to the event page (must be a full URL starting with https://www.bam.org/)
 - eventLocation: Set to 'Brooklyn Academy of Music' for all events
 
