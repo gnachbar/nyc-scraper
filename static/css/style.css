@@ -151,6 +151,7 @@ button:hover {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    table-layout: fixed; /* Ensures columns respect width constraints */
 }
 
 .events-table th {
@@ -160,6 +161,30 @@ button:hover {
     padding: 15px 12px;
     text-align: left;
     border-bottom: 2px solid #dee2e6;
+}
+
+.events-table th:nth-child(1) {
+    width: 35%; /* Event Name */
+}
+
+.events-table th:nth-child(2) {
+    width: 10%; /* Day */
+}
+
+.events-table th:nth-child(3) {
+    width: 12%; /* Date */
+}
+
+.events-table th:nth-child(4) {
+    width: 10%; /* Start Time */
+}
+
+.events-table th:nth-child(5) {
+    width: 23%; /* Venue Name */
+}
+
+.events-table th:nth-child(6) {
+    width: 10%; /* More Info */
 }
 
 .events-table td {
@@ -180,6 +205,9 @@ button:hover {
     font-weight: 500;
     color: #2c3e50;
     position: relative;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .new-badge {
@@ -214,6 +242,11 @@ button:hover {
     color: #007bff;
     text-decoration: none;
     font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 100%;
 }
 
 .event-link:hover {

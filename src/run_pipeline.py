@@ -21,6 +21,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal
 from src.logger import get_logger
+from src.clean_events import mark_recurring_events
 
 logger = get_logger('run_pipeline')
 
@@ -430,6 +431,17 @@ def main():
             result.test_passed = run_tests(source)
         
         scraper_results.append(result)
+    
+    # Mark recurring events after all sources are cleaned
+    # This ensures recurring flags are updated based on all events in the database
+    if not args.skip_cleaning:
+        try:
+            logger.info("Marking recurring events after cleaning all sources...")
+            mark_recurring_events()
+            logger.info("Recurring events marked successfully")
+        except Exception as e:
+            logger.error(f"Failed to mark recurring events: {e}")
+            # Don't fail the pipeline, but log the error
     
     # Calculate summary
     total_duration = (datetime.now() - pipeline_start).total_seconds()

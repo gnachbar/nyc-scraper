@@ -72,7 +72,7 @@ New files created:
   - [ ] 2.11 soapbox_gallery: address failing tests (adjust expectations or data shape)
   - [ ] 2.12 Pipeline: remove staging-only scrapers from production run list (`bam`, `union_hall`) in `src/run_pipeline.py`
   - [ ] 2.13 Validate healthy scrapers continue to pass: kings_theatre, bric_house, lepistol, farm_one, bell_house, littlefield, concerts_on_the_slope
-- [ ] **3.0 Implement recurring events flag (same-title across dates) and sidebar toggle**
+- [x] **3.0 Implement recurring events flag (same-title across dates) and sidebar toggle**
   - [x] 3.1 Migration: add `is_recurring` (bool), `recurrence_key` (text) to events table
   - [x] 3.2 Define `recurrence_key = normalize(title)` function (lowercase, trim, collapse whitespace, strip punctuation)
   - [x] 3.3 Post-import job: group by `(venue, recurrence_key)` and set `is_recurring = true` when count of distinct dates ≥ 2
@@ -80,6 +80,8 @@ New files created:
   - [x] 3.5 UI: add sidebar toggle "Recurring" (on/off) in `templates/index.html` and wire in `static/js/main.js`
   - [x] 3.6 Backend: filter param handling in `src/web/app.py` for recurring toggle
   - [x] 3.7 Tests: DB grouping correctness; UI filter integration
+  - [x] 3.8 Fix backfill: populate `recurrence_key` for existing events, then run `mark_recurring_events()` to properly flag recurring events
+  - [x] 3.9 Default filter: on page load, default to "non-recurring" selected in dropdown
 - [ ] **4.0 Add event category classification via OpenAI API with caching and heuristics fallback**
   - [ ] 4.1 Migration: add `category` (enum/text) and `category_confidence` (float) to events table
   - [ ] 4.2 Define category set: {Concert, Comedy, Talk, Theater, Dance, Exhibit, Workshop, Other}
@@ -128,4 +130,6 @@ New files created:
   - [ ] 11.1 Add database index: `CREATE INDEX idx_recurring_lookup ON clean_events(display_venue, recurrence_key, start_time)`
   - [ ] 11.2 Make `mark_recurring_events()` accept optional `source` parameter for per-source scoping
   - [ ] 11.3 Add metrics/logging: log top 10 recurring patterns with venue, key, and date count
-  - [ ] 11.4 Move `mark_recurring_events()` call from `clean_events.py` to `run_pipeline.py` to separate cleaning from enrichment concerns
+  - [x] 11.4 Move `mark_recurring_events()` call from `clean_events.py` to `run_pipeline.py` to separate cleaning from enrichment concerns
+- [ ] **12.0 Frontend improvements**
+  - [x] 12.1 Prevent text wrapping: ensure events table rows fit on one line (add `white-space: nowrap` and `text-overflow: ellipsis` with `overflow: hidden` for event name cells)

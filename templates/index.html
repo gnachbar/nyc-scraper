@@ -86,9 +86,9 @@
                     <div class="filter-section">
                         <label for="recurring-filter">Show Recurring Events</label>
                         <select name="recurring" id="recurring-filter" onchange="this.form.submit()">
-                            <option value="all" {% if recurring == 'all' or not recurring %}selected{% endif %}>All Events</option>
+                            <option value="all" {% if recurring == 'all' %}selected{% endif %}>All Events</option>
                             <option value="recurring" {% if recurring == 'recurring' %}selected{% endif %}>Recurring Only</option>
-                            <option value="non-recurring" {% if recurring == 'non-recurring' %}selected{% endif %}>Non-Recurring Only</option>
+                            <option value="non-recurring" {% if recurring == 'non-recurring' or not recurring %}selected{% endif %}>Non-Recurring Only</option>
                         </select>
                     </div>
                 </div>

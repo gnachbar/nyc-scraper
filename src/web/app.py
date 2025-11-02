@@ -45,7 +45,7 @@ def index():
         date_end_param = request.args.get('date_end', '')  # YYYY-MM-DD
         max_time = request.args.get('max_time', type=int)
         modes = request.args.get('modes', '', type=str)
-        recurring_filter = request.args.get('recurring', '')  # all, recurring, non-recurring
+        recurring_filter = request.args.get('recurring', 'non-recurring')  # all, recurring, non-recurring (default: non-recurring)
         
         # Base query
         query = db.query(CleanEvent).options(joinedload(CleanEvent.venue_ref))
@@ -172,7 +172,7 @@ def index():
                              date_end=date_end_param,
                              max_time=max_time if max_time else 60,
                              modes=modes if modes else 'walk,subway,drive',
-                             recurring=recurring_filter if recurring_filter else 'all')
+                             recurring=recurring_filter)
     
     except Exception as e:
         logger.error(f"Error in index route: {e}")
@@ -227,7 +227,7 @@ def api_events():
         date_to = request.args.get('date_to', '', type=str)
         max_time = request.args.get('max_time', type=int)
         modes = request.args.get('modes', '', type=str)
-        recurring_filter = request.args.get('recurring', '', type=str)  # all, recurring, non-recurring
+        recurring_filter = request.args.get('recurring', 'non-recurring', type=str)  # all, recurring, non-recurring (default: non-recurring)
         response_format = request.args.get('format', 'json', type=str)
         
         # Build query
