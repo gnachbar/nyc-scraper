@@ -117,11 +117,11 @@ def index():
             if mode_list:
                 conditions = []
                 if 'walk' in mode_list or 'walking' in mode_list:
-                    conditions.append(CleanEvent.walking_time_min <= max_time)
+                    conditions.append(CleanEvent.venue_ref.has(Venue.walking_time_min <= max_time))
                 if 'subway' in mode_list:
-                    conditions.append(CleanEvent.subway_time_min <= max_time)
+                    conditions.append(CleanEvent.venue_ref.has(Venue.subway_time_min <= max_time))
                 if 'drive' in mode_list or 'driving' in mode_list:
-                    conditions.append(CleanEvent.driving_time_min <= max_time)
+                    conditions.append(CleanEvent.venue_ref.has(Venue.driving_time_min <= max_time))
                 
                 if conditions:
                     # Join with OR logic - event matches if ANY mode meets the time requirement
@@ -255,11 +255,11 @@ def api_events():
             if mode_list:
                 conditions = []
                 if 'walk' in mode_list or 'walking' in mode_list:
-                    conditions.append(CleanEvent.walking_time_min <= max_time)
+                    conditions.append(CleanEvent.venue_ref.has(Venue.walking_time_min <= max_time))
                 if 'subway' in mode_list:
-                    conditions.append(CleanEvent.subway_time_min <= max_time)
+                    conditions.append(CleanEvent.venue_ref.has(Venue.subway_time_min <= max_time))
                 if 'drive' in mode_list or 'driving' in mode_list:
-                    conditions.append(CleanEvent.driving_time_min <= max_time)
+                    conditions.append(CleanEvent.venue_ref.has(Venue.driving_time_min <= max_time))
                 
                 if conditions:
                     # Join with OR logic - event matches if ANY mode meets the time requirement

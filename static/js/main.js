@@ -1,14 +1,22 @@
 // NYC Events - JavaScript functionality
 
-document.addEventListener('DOMContentLoaded', function() {
+function initializeAll() {
     // Initialize page functionality
-	initializeSidebarToggle();
+    initializeSidebarToggle();
     initializeFilters();
     initializeTableSorting();
     initializeSearchEnhancements();
     initializeDateRangePicker();
     initializeTimeFilter();
-});
+    initializeMoreInfoPanel();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAll);
+} else {
+    // DOM is already ready
+    initializeAll();
+}
 
 // Filter functionality enhancements
 function initializeFilters() {
@@ -30,6 +38,62 @@ function initializeFilters() {
 
     // Clear filters button
     addClearFiltersButton();
+}
+
+// "More Info" panel interactions
+function initializeMoreInfoPanel() {
+    const rightSidebar = document.getElementById('right-sidebar');
+    const titleEl = document.getElementById('detail-title');
+    const descEl = document.getElementById('detail-description');
+    const distanceEl = document.getElementById('detail-distance');
+    const driveEl = document.getElementById('detail-drive');
+    const walkEl = document.getElementById('detail-walk');
+    const subwayEl = document.getElementById('detail-subway');
+    const closeBtn = document.querySelector('.right-sidebar-close');
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            rightSidebar && rightSidebar.classList.remove('open');
+            try { document.body.classList.remove('right-sidebar-open'); } catch (_) {}
+        });
+    }
+
+    const buttons = document.querySelectorAll('.more-info-btn');
+    if (!buttons || buttons.length === 0) return;
+
+    const normalizeVal = (v) => {
+        if (v === undefined || v === null) return '-';
+        const s = String(v).trim();
+        return s === '' ? '-' : s;
+    };
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const title = this.getAttribute('data-title') || '-';
+            let description = this.getAttribute('data-description') || '';
+            // Convert escaped newlines to real newlines
+            try { description = description.replace(/\\n/g, '\n'); } catch (_) {}
+            const distance = normalizeVal(this.getAttribute('data-distance'));
+            const drive = normalizeVal(this.getAttribute('data-drive'));
+            const walk = normalizeVal(this.getAttribute('data-walk'));
+            const subway = normalizeVal(this.getAttribute('data-subway'));
+
+            if (titleEl) titleEl.textContent = title;
+            if (descEl) {
+                const text = description && description !== 'None' ? description : '-';
+                // Ensure plain text rendering
+                descEl.textContent = text;
+            }
+            if (distanceEl) distanceEl.textContent = distance;
+            if (driveEl) driveEl.textContent = drive === '-' ? '-' : `${drive} min`;
+            if (walkEl) walkEl.textContent = walk === '-' ? '-' : `${walk} min`;
+            if (subwayEl) subwayEl.textContent = subway === '-' ? '-' : `${subway} min`;
+
+            // Show the sidebar
+            rightSidebar && rightSidebar.classList.add('open');
+            try { document.body.classList.add('right-sidebar-open'); } catch (_) {}
+        });
+    });
 }
 
 // Initialize single date-range picker using Flatpickr
