@@ -45,6 +45,7 @@ def index():
         date_end_param = request.args.get('date_end', '')  # YYYY-MM-DD
         max_time = request.args.get('max_time', type=int)
         modes = request.args.get('modes', '', type=str)
+        recurring_filter = request.args.get('recurring', '')  # all, recurring, non-recurring
         
         # Base query
         query = db.query(CleanEvent).options(joinedload(CleanEvent.venue_ref))
@@ -111,6 +112,16 @@ def index():
         if venue_filter:
             query = query.filter(CleanEvent.display_venue == venue_filter)
         
+        # Apply recurring filter if provided
+        if recurring_filter == 'recurring':
+            query = query.filter(CleanEvent.is_recurring == True)
+        elif recurring_filter == 'non-recurring':
+            query = query.filter(or_(
+                CleanEvent.is_recurring == False,
+                CleanEvent.is_recurring.is_(None)
+            ))
+        # If recurring_filter is 'all' or empty, show all events (no filter)
+        
         # Apply distance/time filter if provided
         if max_time and modes:
             mode_list = [m.strip().lower() for m in modes.split(',') if m.strip()]
@@ -160,7 +171,8 @@ def index():
                              date_start=date_start_param,
                              date_end=date_end_param,
                              max_time=max_time if max_time else 60,
-                             modes=modes if modes else 'walk,subway,drive')
+                             modes=modes if modes else 'walk,subway,drive',
+                             recurring=recurring_filter if recurring_filter else 'all')
     
     except Exception as e:
         logger.error(f"Error in index route: {e}")
@@ -197,6 +209,7 @@ def api_events():
     - search: Search in title and description
     - venue: Filter by venue name
     - category: Filter by category
+    - recurring: Filter by recurring status ('all', 'recurring', 'non-recurring')
     - date_from: Filter events from this date (YYYY-MM-DD)
     - date_to: Filter events until this date (YYYY-MM-DD)
     - format: Response format ('json' or 'csv')
@@ -214,6 +227,7 @@ def api_events():
         date_to = request.args.get('date_to', '', type=str)
         max_time = request.args.get('max_time', type=int)
         modes = request.args.get('modes', '', type=str)
+        recurring_filter = request.args.get('recurring', '', type=str)  # all, recurring, non-recurring
         response_format = request.args.get('format', 'json', type=str)
         
         # Build query
@@ -233,6 +247,16 @@ def api_events():
         
         if category:
             query = query.filter(CleanEvent.category.ilike(f'%{category}%'))
+        
+        # Apply recurring filter if provided
+        if recurring_filter == 'recurring':
+            query = query.filter(CleanEvent.is_recurring == True)
+        elif recurring_filter == 'non-recurring':
+            query = query.filter(or_(
+                CleanEvent.is_recurring == False,
+                CleanEvent.is_recurring.is_(None)
+            ))
+        # If recurring_filter is 'all' or empty, show all events (no filter)
         
         if date_from:
             try:
@@ -296,6 +320,9 @@ def api_events():
                 'subway_time_min': event.venue_ref.subway_time_min if event.venue_ref else None,
                 'price_range': event.price_range,
                 'category': event.category,
+                'category_confidence': event.category_confidence,
+                'is_recurring': event.is_recurring,
+                'recurrence_key': event.recurrence_key,
                 'url': event.url,
                 'image_url': event.image_url,
                 'source': event.source,
@@ -339,7 +366,8 @@ def api_events():
                 'date_from': date_from,
                 'date_to': date_to,
                 'max_time': max_time,
-                'modes': modes
+                'modes': modes,
+                'recurring': recurring_filter
             }
         }
         

@@ -33,6 +33,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from src.web.models import ScrapeRun, RawEvent, CleanEvent, SessionLocal, Venue
 from src.logger import get_logger
 from src.lib.google_maps import geocode_place, GoogleMapsError
+from src.lib.recurrence_utils import normalize_recurrence_key
 
 # Import fuzzy matching
 try:
@@ -736,6 +737,9 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
         # Resolve normalized venue once; do not compute per-event distances/times
         venue_obj = get_or_create_venue(session, display_venue, raw_event.location or '')
 
+        # Calculate recurrence key
+        recurrence_key = normalize_recurrence_key(raw_event.title)
+        
         # Create clean event (WRITE ONLY to clean_events table)
         clean_event = CleanEvent(
             title=standardize_title(raw_event.title),
@@ -751,7 +755,8 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
             image_url=raw_event.image_url,
             source=raw_event.source,
             source_urls=[raw_event.url] if raw_event.url else [],
-            venue_id=venue_obj.id
+            venue_id=venue_obj.id,
+            recurrence_key=recurrence_key
         )
         
         # Add to session (clean_events table only)
@@ -761,6 +766,63 @@ def create_clean_event(raw_event: RawEvent, session) -> Optional[CleanEvent]:
     except Exception as e:
         logger.error(f"Error creating clean event from raw event {raw_event.id}: {e}")
         return None
+
+
+def mark_recurring_events():
+    """
+    Post-import job to mark recurring events.
+    
+    Groups events by (display_venue, recurrence_key) and marks as recurring
+    when there are 2 or more distinct dates for the same normalized title.
+    
+    This is called after all events have been imported and should run
+    once per pipeline execution.
+    """
+    logger.info("Marking recurring events...")
+    session = SessionLocal()
+    
+    try:
+        # Query to find recurring patterns: group by venue and recurrence_key
+        # Count distinct dates per group, mark as recurring if count >= 2
+        from sqlalchemy import func, distinct
+        
+        # Find groups with 2+ distinct dates
+        recurring_groups = session.query(
+            CleanEvent.display_venue,
+            CleanEvent.recurrence_key,
+            func.count(distinct(func.date(CleanEvent.start_time))).label('date_count')
+        ).filter(
+            CleanEvent.recurrence_key.isnot(None),
+            CleanEvent.display_venue.isnot(None)
+        ).group_by(
+            CleanEvent.display_venue,
+            CleanEvent.recurrence_key
+        ).having(
+            func.count(distinct(func.date(CleanEvent.start_time))) >= 2
+        ).all()
+        
+        # Mark all events in these groups as recurring
+        recurring_count = 0
+        for display_venue, recurrence_key, date_count in recurring_groups:
+            updated = session.query(CleanEvent).filter(
+                CleanEvent.display_venue == display_venue,
+                CleanEvent.recurrence_key == recurrence_key
+            ).update({
+                'is_recurring': True
+            }, synchronize_session=False)
+            
+            recurring_count += updated
+            logger.debug(f"Marked {updated} events as recurring: {display_venue} / {recurrence_key}")
+        
+        session.commit()
+        logger.info(f"Marked {recurring_count} events as recurring across {len(recurring_groups)} groups")
+        
+    except Exception as e:
+        logger.error(f"Error marking recurring events: {e}")
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def clean_all_sources() -> List[CleaningStats]:
@@ -882,6 +944,10 @@ def main():
             # Clean all sources
             stats_list = clean_all_sources()
             print_cleaning_summary(stats_list)
+            
+            # After all sources are cleaned, mark recurring events
+            if stats_list:
+                mark_recurring_events()
     
     except Exception as e:
         logger.error(f"Cleaning failed: {e}")

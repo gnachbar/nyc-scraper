@@ -94,6 +94,7 @@ class CleanEvent(Base):
     display_venue = Column(String(200))  # Simplified venue name for UI display
     price_range = Column(String(100))  # Standardized price info
     category = Column(String(100))
+    category_confidence = Column(Float)  # Confidence score for category classification (0.0-1.0)
     url = Column(Text)
     image_url = Column(Text)
     source = Column(String(100))  # Primary source
@@ -106,6 +107,8 @@ class CleanEvent(Base):
     longitude = Column(Float)
     # Note: Travel times come from Venue table via venue_ref relationship, not stored here
     new = Column(Boolean, default=False)  # Mark events as new when first added
+    is_recurring = Column(Boolean, default=False)  # Mark recurring events (same title across multiple dates)
+    recurrence_key = Column(Text)  # Normalized key for grouping recurring events
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
