@@ -2,6 +2,33 @@
 
 This document lists venues and event sources that should be prioritized for scraper development.
 
+## Top Priority Venues
+
+These are the highest priority venues that should be maintained, fixed, or created first.
+
+- [⚠️] **Brooklyn Museum** - https://www.brooklynmuseum.org/programs (Existing scraper: `src/scrapers/brooklyn_museum.js` - needs fixes)
+- [ ] **Brooklyn Public Library (BPL Presents)** - https://discover.bklynlibrary.org/?event=true&eventtags=BPL+Presents (Needs creation)
+- [✅] **Kings Theatre** - Existing scraper: `src/scrapers/kings_theatre.js` (Healthy)
+- [⚠️] **Prospect Park** - Existing scraper: `src/scrapers/prospect_park.js` (Needs fixes)
+- [ ] **[Venue TBD - "The place near my office big box"]** - Need clarification on venue name and URL
+- [⚠️] **Barclays Center** - Existing scraper: `src/scrapers/barclays_center.js` (Needs fixes)
+- [✅] **Farm One** - Existing scraper: `src/scrapers/farm_one.js` (Healthy)
+- [⚠️] **Brooklyn Paramount** - Existing scraper: `src/scrapers/brooklyn_paramount.js` (Needs fixes)
+- [🔄] **Union Hall** - Staging scraper: `src/scrapers-staging/union_hall.js` (Needs promotion to production)
+- [ ] **[Venue TBD - "The place near the gym that has comedy"]** - Need clarification on venue name and URL
+- [🔄] **BAM (Brooklyn Academy of Music)** - Staging scraper: `src/scrapers-staging/bam.js` (Needs promotion to production, URL extraction issues)
+- [✅] **BRIC Arts** - Existing scraper: `src/scrapers/bric_house.js` (Healthy)
+- [ ] **Perelman Performing Arts Center** - Needs creation; determine event calendar URL
+- [⚠️] **MSG (Madison Square Garden)** - Existing scraper: `src/scrapers/msg_calendar.js` (Flaky, needs fixes)
+- [ ] **Minetta Lane Theatre** - Needs creation; determine event calendar URL
+- [ ] **Beacon Theatre** - Needs creation; determine event calendar URL
+- [ ] **Radio City Music Hall** - Needs creation; determine event calendar URL
+- [ ] **Carnegie Hall – Stern Auditorium** - Needs creation; determine event calendar URL
+- [ ] **Lincoln Center** - Needs creation; determine event calendar URL (may include multiple venues: Rose Theater, Alice Tully Hall, etc.)
+- [ ] **Sony Hall** - Needs creation; determine event calendar URL
+- [ ] **NY Philharmonic** - https://www.nyphil.org/concerts-tickets/ (Needs creation)
+- [ ] **Town Hall** - https://www.thetownhall.org/events (Needs creation)
+
 ## High Priority Venues
 
 ### Music Venues

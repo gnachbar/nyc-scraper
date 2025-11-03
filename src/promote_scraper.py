@@ -17,8 +17,9 @@ from pathlib import Path
 from typing import List
 
 # App imports
-from src.web.models import SessionLocal, CleanEvent
-from src.lib.google_maps import geocode_place, GoogleMapsError
+from src.web.models import SessionLocal, CleanEvent, Venue
+from src.scripts.backfill_venues import backfill_venues_for_source
+from src.scripts.backfill_travel_times import compute_travel_profiles_and_update_db, generate_weekly_sampling_times
 
 
 def read_file_content(file_path: Path) -> str:
@@ -297,73 +298,65 @@ def run_first_production_test(source: str) -> bool:
         return False
 
 
-def geocode_new_source_coords(source: str) -> bool:
-    """Step 4: Geocode unique venues for the newly promoted source and update coords."""
+def backfill_new_venues_for_source(source: str) -> bool:
+    """Step 4: Backfill venues (geocode, distance, travel times) for new venues from this source."""
     print(f"\n{'='*80}")
-    print(f"STEP 4: Geocode Venue Coordinates for '{source}'")
+    print(f"STEP 4: Backfill Venues for '{source}'")
     print(f"{'='*80}\n")
 
-    session = SessionLocal()
     try:
-        # Find unique (venue, location) for this source with missing coords
-        pairs = session.query(CleanEvent.venue, CleanEvent.location).filter(
-            CleanEvent.source == source,
-            (CleanEvent.latitude == None) | (CleanEvent.longitude == None)
-        ).distinct().all()
-
-        if not pairs:
-            print("No missing coordinates for this source. Skipping.")
-            return True
-
-        print(f"Found {len(pairs)} unique venue/location pairs needing coordinates.")
-        resolved = 0
-        updated_rows = 0
-
-        for venue, location in pairs:
-            query_parts = [p for p in [venue or '', location or ''] if p]
-            if not query_parts:
-                continue
-            query = ' '.join(query_parts)
+        # Use existing backfill_venues function
+        result = backfill_venues_for_source(source)
+        
+        # Optionally run weekly travel time profiles for new venues that were just geocoded
+        # This provides more accurate median travel times across different times of day
+        if result.get('venues_geocoded', 0) > 0 or result.get('travel_times_calculated', 0) > 0:
+            print(f"\n{'='*80}")
+            print(f"STEP 4b: Computing Weekly Travel Time Profiles for '{source}'")
+            print(f"{'='*80}\n")
+            
+            # Get venue names for this source that need travel time profiles
+            session = SessionLocal()
             try:
-                geo = geocode_place(query)
-                if geo and geo.get('lat') is not None and geo.get('lng') is not None:
-                    lat = float(geo['lat']); lng = float(geo['lng'])
-                    # Update all rows for this venue/location
-                    q = session.query(CleanEvent).filter(
-                        CleanEvent.source == source,
-                        (CleanEvent.latitude == None) | (CleanEvent.longitude == None)
+                venue_names = session.query(Venue.name).join(
+                    CleanEvent, CleanEvent.venue_id == Venue.id
+                ).filter(
+                    CleanEvent.source == source,
+                    Venue.latitude.isnot(None),
+                    Venue.longitude.isnot(None)
+                ).distinct().all()
+                
+                venue_names_list = [name[0] for name in venue_names if name[0]]
+                
+                if venue_names_list:
+                    print(f"Computing weekly travel profiles for {len(venue_names_list)} venue(s)...")
+                    print("(This samples 21 times throughout the week for more accurate median travel times)")
+                    print()
+                    
+                    times = generate_weekly_sampling_times()
+                    travel_result = compute_travel_profiles_and_update_db(
+                        times,
+                        dry_run=False,
+                        test_venue_names=venue_names_list
                     )
-                    if venue:
-                        q = q.filter(CleanEvent.venue == venue)
-                    else:
-                        q = q.filter((CleanEvent.venue == None) | (CleanEvent.venue == ''))
-                    if location:
-                        q = q.filter(CleanEvent.location == location)
-                    else:
-                        q = q.filter((CleanEvent.location == None) | (CleanEvent.location == ''))
-
-                    rows = q.all()
-                    for row in rows:
-                        row.latitude = lat
-                        row.longitude = lng
-                        updated_rows += 1
-                    resolved += 1
+                    
+                    print(f"\n✓ Weekly travel profiles complete:")
+                    print(f"  - Venues updated: {travel_result['venues_updated']}")
+                    print(f"  - Venues failed: {travel_result['venues_failed']}")
                 else:
-                    print(f"Could not geocode '{query}'")
-            except GoogleMapsError as e:
-                print(f"Geocode error for '{query}': {e}")
+                    print("No venues found for weekly travel time profile computation.")
             except Exception as e:
-                print(f"Unexpected error for '{query}': {e}")
-
-        session.commit()
-        print(f"\n✓ Geocoding complete: {resolved}/{len(pairs)} pairs resolved, {updated_rows} rows updated")
+                print(f"⚠ Weekly travel time profile computation failed: {e}")
+                print("Basic travel times were still calculated above.")
+            finally:
+                session.close()
+        
         return True
     except Exception as e:
-        session.rollback()
-        print(f"✗ Geocoding step failed: {e}")
+        print(f"✗ Venue backfill failed: {e}")
+        import traceback
+        traceback.print_exc()
         return False
-    finally:
-        session.close()
 
 
 def main():
@@ -423,9 +416,9 @@ def main():
         print("\n⚠ Skipping first production test (--skip-test flag)")
         print(f"  Run manually: python src/run_pipeline.py --source {args.source}")
     
-    # Step 4: Geocode venue coordinates for this source
-    if not geocode_new_source_coords(args.source):
-        print("\n⚠ Geocoding step encountered issues. You can retry later with:\n   python src/promote_scraper.py {args.source} --skip-test")
+    # Step 4: Backfill venues (geocode, distance, travel times) for this source
+    if not backfill_new_venues_for_source(args.source):
+        print("\n⚠ Venue backfill step encountered issues. You can retry later.")
     
     # Success summary
     print(f"\n{'='*80}")

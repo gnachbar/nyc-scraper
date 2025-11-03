@@ -52,6 +52,7 @@ def parse_event_datetime(date_str: str, time_str: Optional[str] = None) -> Optio
             '%B %d',              # October 25 (current year)
             '%b %d',              # Nov 9 (current year, abbreviated month)
             '%a, %B %d',          # Sun, October 26
+            '%a, %b %d, %Y',     # Mon, Nov 3, 2025 (abbreviated day and month, with year)
             '%A, %B %d',         # SATURDAY, OCTOBER 25
             '%A, %B %d, %Y',     # SATURDAY, OCTOBER 25, 2025
         ]
@@ -290,7 +291,7 @@ def main():
     args = parser.parse_args()
     
     # Validate source
-    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records']
+    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records', 'brooklyn_library']
     if args.source not in valid_sources:
         logger.error(f"Invalid source '{args.source}'. Must be one of: {valid_sources}")
         sys.exit(1)
