@@ -1,5 +1,5 @@
-import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom } from '../lib/scraper-utils.js';
-import { clickButtonUntilGone, extractEventsFromPage } from '../lib/scraper-actions.js';
+import { initStagehand, openBrowserbaseSession, createStandardSchema } from '../lib/scraper-utils.js';
+import { clickAndExtractIncrementally } from '../lib/scraper-actions.js';
 import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
 
 // Create standardized schema with Brooklyn Museum default location
@@ -18,60 +18,35 @@ export async function scrapeBrooklynMuseum() {
     console.log("Starting Brooklyn Museum scraping...");
 
     // Step 1: Navigate to the Brooklyn Museum programs page
-    await page.goto("https://www.brooklynmuseum.org/programs");
+    await page.goto("https://www.brooklynmuseum.org/programs", { waitUntil: 'domcontentloaded' });
     console.log("Navigated to Brooklyn Museum programs page");
-    
-    // Wait for page to load
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000); // Additional wait for dynamic content
-    console.log("Page loaded");
+    console.log("Page loaded (using Browserbase recommended approach)");
 
-    // Step 2: Click "Show more events" until the button is no longer there (unique Brooklyn Museum logic)
+    // Step 2: Click "Show more events" and extract incrementally
     // Note: Brooklyn Museum uses either "Show more events" or "Show more" button text
-    // We need to handle both variants, so we'll use a more flexible approach
-    let showMoreClicks = 0;
-    const maxShowMoreClicks = 20;
-    
-    for (let i = 0; i < maxShowMoreClicks; i++) {
-      try {
-        console.log(`Attempting to click "Show more events" (attempt ${i + 1}/${maxShowMoreClicks})`);
-        
-        // Look for either button variant
-        const [showMoreAction] = await page.observe("click the 'Show more events' button or 'Show more' button");
-        
-        if (showMoreAction) {
-          await page.act(showMoreAction);
-          showMoreClicks++;
-          console.log(`Successfully clicked "Show more events" (${showMoreClicks}/${maxShowMoreClicks})`);
-          
-          // Wait for new content to load
-          await page.waitForLoadState('networkidle');
-          await page.waitForTimeout(2000);
-          
-          // Scroll to bottom again to trigger any additional lazy loading
-          await scrollToBottom(page, 1000);
-        } else {
-          console.log("No 'Show more events' button found. All events may be loaded.");
-          break;
-        }
-      } catch (error) {
-        console.log(`Failed to click "Show more events" on attempt ${i + 1}: ${error.message}`);
-        break;
-      }
-    }
-    
-    console.log(`Total "Show more events" clicks: ${showMoreClicks}`);
-
-    // Step 3: Extract all visible events
-    const result = await extractEventsFromPage(
+    // Brooklyn Museum has continuous network activity, so skip networkidle
+    // Using incremental extraction to prevent losing work if extraction fails after many clicks
+    const allEvents = await clickAndExtractIncrementally(
       page,
-      "Extract all visible events from the Brooklyn Museum programs page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), description (as eventDescription, if available), location (as eventLocation - set to 'Brooklyn Museum' for all events), and the URL (as eventUrl) from the actual href attribute of the event link element. Do NOT construct URLs from event names. Extract the real href value from the HTML. If the href is relative (starts with /), prepend 'https://www.brooklynmuseum.org' to make it absolute. If description is not visible, return an empty string for eventDescription.",
-      StandardEventSchema,
-      { sourceName: 'brooklyn_museum' }
+      "Show more events' button or 'Show more'",
+      async () => {
+        const result = await page.extract({
+          instruction: "Extract all visible events from the Brooklyn Museum programs page. For each event, get the event name (as eventName), date (as eventDate), time (as eventTime, if available), description (as eventDescription, if available), location (as eventLocation - set to 'Brooklyn Museum' for all events), and the URL (as eventUrl) from the actual href attribute of the event link element. Do NOT construct URLs from event names. Extract the real href value from the HTML. If the href is relative (starts with /), prepend 'https://www.brooklynmuseum.org' to make it absolute. If description is not visible, return an empty string for eventDescription.",
+          schema: StandardEventSchema
+        });
+        return result;
+      },
+      20, // maxClicks
+      {
+        scrollAfterClick: true,
+        scrollWaitTime: 1000,
+        loadWaitTime: 2000,
+        skipNetworkIdle: true
+      }
     );
 
-    // Add hardcoded venue name to all events
-    const eventsWithLocation = result.events.map(event => ({
+    // Add hardcoded venue name to all events (backup in case schema default failed)
+    const eventsWithLocation = allEvents.map(event => ({
       ...event,
       eventLocation: "Brooklyn Museum"
     }));

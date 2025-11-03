@@ -14,6 +14,7 @@
 - `src/lib/scraper-persistence.js` - Persistence helpers; ensure consistent error handling.
 - `src/scrapers/*.js` - Production scrapers; apply logging/pagination/description improvements.
 - `src/scrapers-staging/*.js` - Staging scrapers; apply patterns before promotion.
+- `src/scrapers/brooklyn_library.js` - Brooklyn Public Library scraper for BPL Presents events (created, promoted to production, venue backfilled with correct coordinates and travel times).
 - `templates/index.html` - Sidebar filters UI for category and recurring toggles; "New" filter.
 - `static/js/main.js` - Frontend filter toggling logic; hook into new filters.
 - `docs/stagehand-scraper-guide.md` - Required flow for new scrapers and promotion.
@@ -39,25 +40,53 @@ New files created:
 
 ## Tasks
 
-- [ ] **1.0 Simplify and standardize scrapers (baseline Stagehand/Browserbase template)**
-  - [x] 1.1 barclays_center
-  - [x] 1.2 bell_house
-  - [x] 1.3 bric_house
-  - [x] 1.4 brooklyn_museum
-  - [x] 1.5 brooklyn_paramount
-  - [x] 1.6 concerts_on_the_slope
-  - [x] 1.7 crown_hill_theatre
-  - [ ] 1.8 farm_one
-  - [ ] 1.9 kings_theatre
-  - [ ] 1.10 lepistol
-  - [ ] 1.11 littlefield
-  - [ ] 1.12 msg_calendar
-  - [ ] 1.13 prospect_park
-  - [ ] 1.14 public_records
-  - [ ] 1.15 public_theater
-  - [ ] 1.16 roulette
-  - [ ] 1.17 shapeshifter_plus
-  - [ ] 1.18 soapbox_gallery
+- [ ] **1.0 Top Priority Venues - Standardize, fix, and create scrapers**
+  - [ ] 1.1 brooklyn_museum: fix session closures; add robust waits; confirm selectors; avoid long idle periods (see Task 2.3)
+    - [x] 1.1.1 Fix initial page load strategy: Use Browserbase recommended domcontentloaded approach
+    - [x] 1.1.2 Refactor Show More button logic: Replace custom loop with clickButtonUntilGone() shared utility for consistency and error handling
+    - [x] 1.1.3 Implement incremental extraction architecture: Create new clickAndExtractIncrementally() function in scraper-actions.js that extracts events after each click to avoid losing work on failure
+    - [x] 1.1.4 Add deduplication logic: Implement event deduplication using eventName+eventDate as unique key to prevent duplicate events in incremental extraction
+    - [x] 1.1.5 Refactor brooklyn_museum to use incremental extraction: Replace single extraction at end with incremental extraction during clicks
+    - [ ] 1.1.6 Add enhanced logging infrastructure: Create structured logging with timestamps, phase tracking, and session lifecycle events in scraper-utils.js
+    - [ ] 1.1.7 Add logging to Brooklyn Museum: Implement detailed logging at each phase (load, clicks, extractions, context closure)
+    - [ ] 1.1.8 Test incremental extraction end-to-end: Verify scraper completes successfully with all events captured and proper logging
+    - [ ] 1.1.9 Verify pagination completeness: Confirm all events are captured (not missing future events)
+    - [ ] 1.1.10 Mark task 1.1 as completed: Update ny-nov-improvement-plan.md
+  - [x] 1.2 brooklyn_library: create new scraper for BPL Presents events (https://discover.bklynlibrary.org/?event=true&eventtags=BPL+Presents); follow stagehand-scraper-guide.md
+    - [x] 1.2.1 Created scraper in staging with pagination, duplicate detection, and URL normalization
+    - [x] 1.2.2 Added date format support to import script
+    - [x] 1.2.3 Promoted to production (moved to src/scrapers/)
+    - [x] 1.2.4 Backfilled venue with correct coordinates, distance, and travel times
+    - [x] 1.2.5 Fixed venue distance calculation (was 5.98 miles, corrected to 0.21 miles)
+    - [x] 1.2.6 Integrated venue backfill into promotion script for future scrapers
+  - [ ] 1.3 kings_theatre: verify scraper health and ensure standardized template compliance
+    - [ ] 1.3.1 Verify current scraper health: Run the scraper and check it produces expected events without errors
+    - [ ] 1.3.2 Fix missing `waitForLoadState` after navigation: Add `await page.waitForLoadState('networkidle')` after `page.goto()` per guide requirements
+    - [ ] 1.3.3 Run scraper consistency tests: Verify schema, eventLocation handling, URL extraction, and instruction structure pass
+    - [ ] 1.3.4 Verify description extraction: Ensure descriptions are extracted (per Task 5.0 improvement plan)
+    - [ ] 1.3.5 Test end-to-end after fixes: Run full scraper and confirm it still produces 34 events successfully
+    - [ ] 1.3.6 Verify pagination completeness: Confirm all events are captured (not missing future events due to incomplete pagination)
+    - [ ] 1.3.7 Document any deviations: If `waitForLoadState('networkidle')` causes issues (timeouts), document and use alternative with explanation (like bell_house does)
+  - [ ] 1.4 prospect_park: fix session closures; add robust waits; verify pagination button text; cap pages to avoid session timeout (see Task 2.2)
+  - [ ] 1.5 [Venue name TBD - "The place near my office big box"]: create new scraper; need clarification on venue name and URL
+  - [ ] 1.6 barclays_center: reduce load-more cycles to stay under 15 minutes; add fallback timeout after clicks (see Task 2.6)
+  - [ ] 1.7 farm_one: verify scraper health and ensure standardized template compliance
+  - [ ] 1.8 brooklyn_paramount: fix session closures; add waits after calendar actions; cap months/pages (see Task 2.5)
+  - [ ] 1.9 union_hall: promote from staging to production; remove from staging after promotion (see Task 2.12)
+  - [ ] 1.10 [Venue name TBD - "The place near the gym that has comedy"]: create new scraper; need clarification on venue name and URL
+  - [ ] 1.11 bam: promote from staging to production; resolve URL extraction issues (see staging/BAM-NOTES.md); remove from staging after promotion (see Task 2.12)
+  - [ ] 1.12 bric_house: verify scraper health and ensure standardized template compliance
+  - [ ] 1.13 perelman_performing_arts_center: create new scraper; follow stagehand-scraper-guide.md; determine event calendar URL
+  - [ ] 1.14 msg_calendar: resolve Stagehand parse error; verify extraction schema; ensure `waitForLoadState('networkidle')` after `goto()` (see Task 2.1)
+  - [ ] 1.15 minetta_lane_theatre: create new scraper; follow stagehand-scraper-guide.md; determine event calendar URL
+  - [ ] 1.16 beacon_theatre: create new scraper; follow stagehand-scraper-guide.md; determine event calendar URL
+  - [ ] 1.17 radio_city_music_hall: create new scraper; follow stagehand-scraper-guide.md; determine event calendar URL
+  - [ ] 1.18 carnegie_hall: create new scraper for Stern Auditorium events; follow stagehand-scraper-guide.md; determine event calendar URL
+  - [ ] 1.19 lincoln_center: create new scraper; follow stagehand-scraper-guide.md; determine event calendar URL (may include multiple venues: Rose Theater, Alice Tully Hall, etc.)
+  - [ ] 1.20 sony_hall: create new scraper; follow stagehand-scraper-guide.md; determine event calendar URL
+  - [ ] 1.21 ny_phil: create new scraper for NY Philharmonic concerts (https://www.nyphil.org/concerts-tickets/); follow stagehand-scraper-guide.md
+  - [ ] 1.22 town_hall: create new scraper (https://www.thetownhall.org/events); follow stagehand-scraper-guide.md
+  - [ ] 1.23 Add "Top" venue flag: migration to add `is_top` (boolean) column to venues table; add frontend filter toggle for "Top venues only" in sidebar
 - [ ] **2.0 Production fixes per scraper (based on last two runs)**
   - [ ] 2.1 msg_calendar: resolve Stagehand parse error; verify extraction schema; ensure `waitForLoadState('networkidle')` after `goto()`
   - [ ] 2.2 prospect_park: fix session closures; add robust waits; verify pagination button text; cap pages to avoid session timeout

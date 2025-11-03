@@ -10,13 +10,15 @@ import { scrollToBottom } from './scraper-utils.js';
  * @param {boolean} [options.scrollAfterClick=true] - Whether to scroll to bottom after each click
  * @param {number} [options.scrollWaitTime=2000] - Time to wait after scrolling
  * @param {number} [options.loadWaitTime=2000] - Time to wait for content to load after click
+ * @param {boolean} [options.skipNetworkIdle=false] - Skip networkidle wait for sites with continuous network activity
  * @returns {Promise<number>} Number of successful clicks
  */
 export async function clickButtonUntilGone(page, buttonText, maxClicks, options = {}) {
   const { 
     scrollAfterClick = true, 
     scrollWaitTime = 2000, 
-    loadWaitTime = 2000 
+    loadWaitTime = 2000,
+    skipNetworkIdle = false 
   } = options;
   
   let clickCount = 0;
@@ -33,7 +35,9 @@ export async function clickButtonUntilGone(page, buttonText, maxClicks, options 
         console.log(`Successfully clicked "${buttonText}" (${clickCount}/${maxClicks})`);
         
         // Wait for new content to load
-        await page.waitForLoadState('networkidle');
+        if (!skipNetworkIdle) {
+          await page.waitForLoadState('networkidle');
+        }
         await page.waitForTimeout(loadWaitTime);
         
         // Scroll to bottom if requested
@@ -101,6 +105,38 @@ export function validateExtractionResult(result, options = {}) {
   return {
     isValid: true,
     error: null
+  };
+}
+
+/**
+ * Filter out duplicate events using event name and date as unique key
+ * @param {Array} events - Array of events to filter
+ * @param {Set} seenEventKeys - Set of already-seen event keys (will be mutated)
+ * @param {Object} options - Additional options
+ * @param {Function} [options.keyFn] - Optional function to generate unique key from event (default: eventName|eventDate)
+ * @returns {Object} Object with filtered newEvents array and newEventsCount number
+ */
+export function filterDuplicateEvents(events, seenEventKeys, options = {}) {
+  const { keyFn } = options;
+  
+  // Default key function uses eventName + eventDate as unique identifier
+  const getEventKey = keyFn || ((event) => `${event.eventName}|${event.eventDate}`);
+  
+  const newEvents = [];
+  let newEventsCount = 0;
+  
+  for (const event of events) {
+    const eventKey = getEventKey(event);
+    if (!seenEventKeys.has(eventKey)) {
+      seenEventKeys.add(eventKey);
+      newEvents.push(event);
+      newEventsCount++;
+    }
+  }
+  
+  return {
+    newEvents,
+    newEventsCount
   };
 }
 
@@ -245,6 +281,109 @@ export async function paginateThroughPages(page, extractFn, maxPages, options = 
 
   console.log(`Total pages processed: ${pageCount}`);
   console.log(`Total events found: ${allEvents.length}`);
+  
+  return allEvents;
+}
+
+/**
+ * Click a button repeatedly and extract events after each click (incremental extraction)
+ * This prevents losing all work if extraction fails at the end after many clicks
+ * @param {Object} page - Stagehand page object
+ * @param {string} buttonText - Text or description of button to click
+ * @param {Function} extractFn - Function to extract events from current page state
+ * @param {number} maxClicks - Maximum number of clicks to attempt
+ * @param {Object} options - Additional options
+ * @param {boolean} [options.scrollAfterClick=true] - Whether to scroll to bottom after each click
+ * @param {number} [options.scrollWaitTime=2000] - Time to wait after scrolling
+ * @param {number} [options.loadWaitTime=2000] - Time to wait for content to load after click
+ * @param {boolean} [options.skipNetworkIdle=false] - Skip networkidle wait for sites with continuous network activity (uses waitForTimeout only)
+ * @param {string} [options.waitForState] - Alternative wait strategy: 'domcontentloaded', 'load', or 'networkidle' (defaults to networkidle unless skipNetworkIdle is true)
+ * @param {Function} [options.deduplicationKeyFn] - Optional function to generate deduplication key for events (default: eventName|eventDate)
+ * @returns {Promise<Array>} Array of all unique extracted events
+ */
+export async function clickAndExtractIncrementally(page, buttonText, extractFn, maxClicks, options = {}) {
+  const { 
+    scrollAfterClick = true, 
+    scrollWaitTime = 2000, 
+    loadWaitTime = 2000,
+    skipNetworkIdle = false,
+    waitForState,
+    deduplicationKeyFn = (event) => `${event.eventName}|${event.eventDate}`
+  } = options;
+  
+  const allEvents = [];
+  const seenEventKeys = new Set(); // Track seen events to prevent duplicates
+  let clickCount = 0;
+
+  for (let i = 0; i < maxClicks; i++) {
+    try {
+      console.log(`Extracting events before click attempt ${i + 1}/${maxClicks}...`);
+      
+      // Extract events from current state BEFORE clicking
+      const result = await extractFn();
+      let newEventsCount = 0;
+      
+      // Add unique events to our collection
+      for (const event of result.events) {
+        const key = deduplicationKeyFn(event);
+        if (!seenEventKeys.has(key)) {
+          seenEventKeys.add(key);
+          allEvents.push(event);
+          newEventsCount++;
+        }
+      }
+      
+      console.log(`  Extracted ${result.events.length} events, ${newEventsCount} new, ${result.events.length - newEventsCount} duplicates`);
+      console.log(`  Total unique events so far: ${allEvents.length}`);
+      
+      // Check for pagination loop
+      if (newEventsCount === 0 && result.events.length > 0) {
+        console.log(`⚠ WARNING: All events have been seen before. Pagination may be looping.`);
+        break; // Stop if we're just seeing duplicates
+      }
+      
+      // Now try to click the button
+      console.log(`Attempting to click "${buttonText}" (attempt ${i + 1}/${maxClicks})`);
+      
+      const [buttonAction] = await page.observe(`click the '${buttonText}' button`);
+      
+      if (buttonAction) {
+        await page.act(buttonAction);
+        clickCount++;
+        console.log(`Successfully clicked "${buttonText}" (${clickCount}/${maxClicks})`);
+        
+        // Wait for new content to load
+        if (!skipNetworkIdle) {
+          // Use custom waitForState if provided, otherwise default to networkidle
+          const stateToWaitFor = waitForState || 'networkidle';
+          await page.waitForLoadState(stateToWaitFor);
+        }
+        await page.waitForTimeout(loadWaitTime);
+        
+        // Scroll to bottom if requested
+        if (scrollAfterClick) {
+          await scrollToBottom(page, scrollWaitTime);
+        }
+      } else {
+        console.log(`No "${buttonText}" button found. All content loaded.`);
+        break;
+      }
+    } catch (error) {
+      console.error(`Error during click/extract iteration ${i + 1}: ${error.message}`);
+      
+      // If browser context is closed, we must stop
+      if (error.message.includes('closed') || error.message.includes('Target page')) {
+        console.error('Browser context closed. Stopping incremental extraction.');
+        break;
+      }
+      
+      // For other errors, log but continue - we may still have good data
+      console.log(`Continuing with next iteration despite error...`);
+    }
+  }
+
+  console.log(`Total "${buttonText}" clicks: ${clickCount}`);
+  console.log(`Total unique events found: ${allEvents.length}`);
   
   return allEvents;
 }
