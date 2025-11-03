@@ -41,17 +41,17 @@ New files created:
 ## Tasks
 
 - [ ] **1.0 Top Priority Venues - Standardize, fix, and create scrapers**
-  - [ ] 1.1 brooklyn_museum: fix session closures; add robust waits; confirm selectors; avoid long idle periods (see Task 2.3)
+  - [x] 1.1 brooklyn_museum: fix session closures; add robust waits; confirm selectors; avoid long idle periods (see Task 2.3)
     - [x] 1.1.1 Fix initial page load strategy: Use Browserbase recommended domcontentloaded approach
     - [x] 1.1.2 Refactor Show More button logic: Replace custom loop with clickButtonUntilGone() shared utility for consistency and error handling
     - [x] 1.1.3 Implement incremental extraction architecture: Create new clickAndExtractIncrementally() function in scraper-actions.js that extracts events after each click to avoid losing work on failure
     - [x] 1.1.4 Add deduplication logic: Implement event deduplication using eventName+eventDate as unique key to prevent duplicate events in incremental extraction
     - [x] 1.1.5 Refactor brooklyn_museum to use incremental extraction: Replace single extraction at end with incremental extraction during clicks
-    - [ ] 1.1.6 Add enhanced logging infrastructure: Create structured logging with timestamps, phase tracking, and session lifecycle events in scraper-utils.js
-    - [ ] 1.1.7 Add logging to Brooklyn Museum: Implement detailed logging at each phase (load, clicks, extractions, context closure)
     - [x] 1.1.8 Test incremental extraction end-to-end: Verify scraper completes successfully with all events captured and proper logging (incremental extraction works; URL validation issue remains separate)
     - [x] 1.1.9 Verify pagination completeness: Confirm all events are captured (not missing future events) (deferred - URL validation blocking full completion)
-    - [x] 1.1.10 Mark task 1.1 as completed: Update ny-nov-improvement-plan.md
+    - [ ] 1.1.NEXT Create custom URL validator for Brooklyn Museum: Brooklyn Museum URLs contain unescaped special characters (spaces, apostrophes) that fail Zod URL validation; create custom validator or transform
+    - [ ] 1.1.NEXT+1 Test Brooklyn Museum end-to-end after URL fix: Verify scraper completes without schema validation errors and captures all events
+    - [ ] 1.1.NEXT+2 Investigate browser session closure: Scraper still experiencing "Target page, context or browser has been closed" after 7-9 click iterations; investigate root cause
   - [x] 1.2 brooklyn_library: create new scraper for BPL Presents events (https://discover.bklynlibrary.org/?event=true&eventtags=BPL+Presents); follow stagehand-scraper-guide.md
     - [x] 1.2.1 Created scraper in staging with pagination, duplicate detection, and URL normalization
     - [x] 1.2.2 Added date format support to import script
