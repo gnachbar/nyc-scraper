@@ -360,6 +360,43 @@ class ScraperDiagnostics:
             report.observations.append("Button selector found 0 matches - check case sensitivity")
             report.observations.append("Tip: Use case-insensitive regex selector like text=/button text/i")
 
+        elif "intercepts pointer events" in error_output or "subtree intercepts pointer" in error_output:
+            report.failure_category = "overlay_blocking_clicks"
+            report.failure_pattern = "Overlay element (chat widget, popup) is blocking clicks"
+
+            # Try to identify what's blocking
+            iframe_match = re.search(r'<iframe[^>]*title="([^"]+)"[^>]*>', error_output)
+            if iframe_match:
+                report.observations.append(f"Blocking element: iframe '{iframe_match.group(1)}'")
+            elif "beacon" in error_output.lower() or "helpscout" in error_output.lower():
+                report.observations.append("Blocking element: Help Scout Beacon chat widget")
+            elif "onetrust" in error_output.lower() or "consent" in error_output.lower():
+                report.observations.append("Blocking element: OneTrust cookie consent overlay")
+            else:
+                report.observations.append("An overlay element is intercepting click events")
+
+            report.observations.append("Fix: Hide overlay elements before clicking, or use JavaScript click")
+
+        elif '"elements": []' in error_output or "'elements': []" in error_output:
+            report.failure_category = "element_not_found"
+            report.failure_pattern = "Stagehand observe found no matching elements"
+            report.observations.append("The observe() call returned an empty elements array")
+            report.observations.append("Possible causes: element doesn't exist, wrong page state, or selector issue")
+
+        elif "Execution context was destroyed" in error_output or "because of a navigation" in error_output:
+            report.failure_category = "navigation_context_destroyed"
+            report.failure_pattern = "Page navigated unexpectedly, destroying execution context"
+            report.observations.append("An action triggered an unexpected page navigation")
+            report.observations.append("Possible causes: clicked a link instead of button, or page auto-redirected")
+            report.observations.append("Fix: Wait for navigation to complete, or use direct selectors instead of AI-powered act()")
+
+        elif "cloudflare" in error_output.lower() or "verifying you are human" in error_output.lower() or "ray id" in error_output.lower():
+            report.failure_category = "bot_detection"
+            report.failure_pattern = "Site is blocking scraper with bot detection (Cloudflare challenge)"
+            report.observations.append("Cloudflare or similar bot protection is blocking access")
+            report.observations.append("The page shows a 'Verifying you are human' challenge")
+            report.observations.append("This site may require special handling (stealth mode, residential proxies, or manual scraping)")
+
         elif report.profile.data_is_stale:
             report.failure_category = "stale_data"
             report.failure_pattern = "Scraper hasn't run successfully in a long time"
@@ -551,6 +588,98 @@ class ScraperDiagnostics:
                 }
             ]
             report.confidence = 0.5
+
+        elif report.failure_category == "overlay_blocking_clicks":
+            # Check if it's a cookie consent overlay
+            is_cookie_consent = any(word in str(report.observations).lower() for word in ['onetrust', 'consent', 'cookie'])
+
+            if is_cookie_consent:
+                report.recommended_fixes = [
+                    {
+                        "priority": 1,
+                        "action": "handle_cookie_consent",
+                        "description": "Accept or dismiss cookie consent overlay before clicking",
+                        "confidence": 0.95,
+                        "rationale": "Cookie consent overlays (OneTrust, etc.) must be handled first"
+                    },
+                    {
+                        "priority": 2,
+                        "action": "hide_overlay_elements",
+                        "description": "Hide cookie consent overlay elements",
+                        "confidence": 0.85,
+                        "rationale": "Hiding the overlay allows clicks to pass through"
+                    }
+                ]
+            else:
+                report.recommended_fixes = [
+                    {
+                        "priority": 1,
+                        "action": "hide_overlay_elements",
+                        "description": "Hide chat widgets and overlay elements before clicking",
+                        "confidence": 0.9,
+                        "rationale": "Overlay elements like Help Scout Beacon are intercepting clicks"
+                    },
+                    {
+                        "priority": 2,
+                        "action": "use_force_click",
+                        "description": "Use JavaScript click to bypass overlay",
+                        "confidence": 0.7,
+                        "rationale": "Force click can bypass overlay elements"
+                    }
+                ]
+            report.confidence = 0.9
+
+        elif report.failure_category == "element_not_found":
+            report.recommended_fixes = [
+                {
+                    "priority": 1,
+                    "action": "check_page_state",
+                    "description": "Verify page is in correct state before looking for element",
+                    "confidence": 0.7,
+                    "rationale": "Element may only appear after certain actions (scroll, wait, click)"
+                },
+                {
+                    "priority": 2,
+                    "action": "try_alternative_selector",
+                    "description": "Try different selector or instruction for element",
+                    "confidence": 0.6,
+                    "rationale": "The observe instruction may not match element on page"
+                },
+                {
+                    "priority": 3,
+                    "action": "skip_missing_element",
+                    "description": "Continue without the element if it's optional",
+                    "confidence": 0.5,
+                    "rationale": "Element may not exist on all page states"
+                }
+            ]
+            report.confidence = 0.7
+
+        elif report.failure_category == "bot_detection":
+            report.recommended_fixes = [
+                {
+                    "priority": 1,
+                    "action": "enable_stealth_mode",
+                    "description": "Enable stealth mode in Browserbase to avoid bot detection",
+                    "confidence": 0.5,
+                    "rationale": "Stealth mode may bypass some bot protection"
+                },
+                {
+                    "priority": 2,
+                    "action": "use_residential_proxy",
+                    "description": "Use residential proxy IP instead of datacenter IP",
+                    "confidence": 0.6,
+                    "rationale": "Residential IPs are less likely to be flagged as bots"
+                },
+                {
+                    "priority": 3,
+                    "action": "mark_requires_manual",
+                    "description": "Mark this scraper as requiring manual intervention",
+                    "confidence": 0.9,
+                    "rationale": "Site has aggressive bot protection that may be difficult to bypass automatically"
+                }
+            ]
+            report.confidence = 0.9
 
         elif report.failure_category == "stale_data":
             report.recommended_fixes = [

@@ -17,8 +17,28 @@ export async function scrapeKingsTheatre() {
     openBrowserbaseSession(stagehand.browserbaseSessionID);
 
     // Step 1: Open the web page
-    await page.goto("https://www.kingstheatre.com/events/");
-    
+    await page.goto("https://www.kingstheatre.com/events/", {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000
+    });
+    await page.waitForTimeout(3000);
+
+    // Handle cookie consent overlay (OneTrust)
+    try {
+      await page.evaluate(() => {
+        // Hide OneTrust consent overlay
+        const onetrust = document.getElementById('onetrust-consent-sdk');
+        if (onetrust) onetrust.style.display = 'none';
+
+        // Also try clicking accept button if it exists
+        const acceptBtn = document.querySelector('#onetrust-accept-btn-handler');
+        if (acceptBtn) acceptBtn.click();
+      });
+      console.log("Handled cookie consent overlay");
+    } catch (e) {
+      console.log("Cookie consent handling skipped:", e.message);
+    }
+
     // Step 2: Scroll to the bottom
     await scrollToBottom(page);
     

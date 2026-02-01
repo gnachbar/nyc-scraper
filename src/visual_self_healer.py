@@ -378,6 +378,24 @@ Scraped events sample:
             # This requires visual inspection - can't auto-fix
             return False, "Requires manual inspection of screenshot"
 
+        elif action == "hide_overlay_elements":
+            return self._add_hide_overlay_elements()
+
+        elif action == "handle_cookie_consent":
+            return self._add_cookie_consent_handling()
+
+        elif action == "use_force_click":
+            return self._add_force_click()
+
+        elif action == "check_page_state":
+            return False, "Requires investigation of page state"
+
+        elif action == "try_alternative_selector":
+            return False, "Requires manual selector investigation"
+
+        elif action == "skip_missing_element":
+            return self._make_element_optional()
+
         return False, f"No implementation for fix action: {action}"
 
     def _fix_scroll_implementation(self) -> Tuple[bool, str]:
@@ -723,6 +741,167 @@ Scraped events sample:
             return True, f"Increased pagination limits"
 
         return False, "No pagination settings found to modify"
+
+    def _add_cookie_consent_handling(self) -> Tuple[bool, str]:
+        """Add code to handle cookie consent overlays (OneTrust, etc.)."""
+        path = Path(self.scraper_path)
+        if not path.exists():
+            return False, "Scraper file not found"
+
+        content = path.read_text()
+        import re
+
+        # Check if already has cookie consent handling
+        if 'onetrust' in content.lower() or 'cookie-consent' in content.lower():
+            return False, "Already has cookie consent handling"
+
+        # Find the navigation/goto call and add cookie consent handling after it
+        pattern = r'(await page\.goto\([^)]+\)[^;]*;[^}]*?await page\.waitForTimeout\(\d+\);)'
+        match = re.search(pattern, content, re.DOTALL)
+
+        if not match:
+            # Try simpler pattern
+            pattern = r'(await page\.goto\([^)]+\);)'
+            match = re.search(pattern, content)
+
+        if not match:
+            return False, "Could not find page.goto call"
+
+        # Add cookie consent handling code after navigation
+        cookie_consent_code = '''
+
+    // Handle cookie consent overlays (OneTrust, etc.)
+    try {
+      await page.evaluate(() => {
+        // Hide OneTrust consent overlay
+        const onetrust = document.getElementById('onetrust-consent-sdk');
+        if (onetrust) onetrust.style.display = 'none';
+
+        // Try clicking accept button if it exists
+        const acceptSelectors = [
+          '#onetrust-accept-btn-handler',
+          '.onetrust-close-btn-handler',
+          '[aria-label*="Accept"]',
+          '[aria-label*="accept"]',
+          'button[id*="accept"]',
+          '.cookie-consent-accept'
+        ];
+        for (const sel of acceptSelectors) {
+          const btn = document.querySelector(sel);
+          if (btn) {
+            btn.click();
+            break;
+          }
+        }
+      });
+      console.log("Handled cookie consent overlay");
+    } catch (e) {
+      console.log("Cookie consent handling skipped:", e.message);
+    }
+'''
+        content = content.replace(match.group(0), match.group(0) + cookie_consent_code, 1)
+        path.write_text(content)
+        return True, "Added cookie consent handling (OneTrust, etc.)"
+
+    def _add_hide_overlay_elements(self) -> Tuple[bool, str]:
+        """Add code to hide chat widgets and overlay elements before clicking."""
+        path = Path(self.scraper_path)
+        if not path.exists():
+            return False, "Scraper file not found"
+
+        content = path.read_text()
+        import re
+
+        # Check if already has overlay hiding
+        if 'hideOverlays' in content or 'beacon-container' in content:
+            return False, "Already has overlay hiding code"
+
+        # Find the navigation/goto call and add overlay hiding after it
+        pattern = r'(await page\.goto\([^)]+\)[^;]*;[^}]*?await page\.waitForTimeout\(\d+\);)'
+        match = re.search(pattern, content, re.DOTALL)
+
+        if not match:
+            # Try simpler pattern
+            pattern = r'(await page\.goto\([^)]+\);)'
+            match = re.search(pattern, content)
+
+        if not match:
+            return False, "Could not find page.goto call"
+
+        # Add overlay hiding code after navigation
+        hide_overlay_code = '''
+
+    // Hide overlay elements (chat widgets, popups) that can block clicks
+    await page.evaluate(() => {
+      // Hide Help Scout Beacon
+      const beacon = document.getElementById('beacon-container');
+      if (beacon) beacon.style.display = 'none';
+
+      // Hide other common chat widgets
+      const selectors = [
+        '[class*="beacon"]',
+        '[class*="intercom"]',
+        '[class*="drift"]',
+        '[class*="zendesk"]',
+        '[class*="chat-widget"]',
+        '[id*="chat"]',
+        'iframe[title*="chat"]',
+        'iframe[title*="beacon"]',
+        'iframe[title*="Help"]'
+      ];
+      selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          el.style.display = 'none';
+        });
+      });
+    });
+    console.log("Hidden overlay elements (chat widgets, etc.)");
+'''
+        content = content.replace(match.group(0), match.group(0) + hide_overlay_code, 1)
+        path.write_text(content)
+        return True, "Added code to hide overlay elements (chat widgets)"
+
+    def _add_force_click(self) -> Tuple[bool, str]:
+        """Add JavaScript force click to bypass overlays."""
+        path = Path(self.scraper_path)
+        if not path.exists():
+            return False, "Scraper file not found"
+
+        content = path.read_text()
+
+        # This is a more targeted fix - add { force: true } to specific clicks
+        # For now, just hide overlays which is more reliable
+        self.log("⚠️  Force click not implemented - using hide_overlay_elements instead")
+        return self._add_hide_overlay_elements()
+
+    def _make_element_optional(self) -> Tuple[bool, str]:
+        """Make the missing element optional by wrapping in try-catch."""
+        path = Path(self.scraper_path)
+        if not path.exists():
+            return False, "Scraper file not found"
+
+        content = path.read_text()
+        import re
+
+        # Find clickButtonUntilGone calls and make them optional
+        pattern = r'(await clickButtonUntilGone\([^)]+\);)'
+        match = re.search(pattern, content)
+
+        if not match:
+            return False, "Could not find element to make optional"
+
+        original_call = match.group(1)
+
+        # Wrap in try-catch
+        optional_wrapper = f'''try {{
+      {original_call}
+    }} catch (clickError) {{
+      console.log("Optional button click failed (may not exist on page):", clickError.message);
+    }}'''
+
+        content = content.replace(original_call, optional_wrapper, 1)
+        path.write_text(content)
+        return True, "Made pagination button click optional (wrapped in try-catch)"
 
     def run_iteration(self, iteration: int, previous_error: str = "") -> ScraperIteration:
         """Run a single iteration of scrape -> diagnose -> analyze -> fix."""

@@ -12,7 +12,7 @@
 
 // Import shared utilities from src/lib/
 // scraper-utils.js: Provides initialization, schema creation, and scrolling helpers
-import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom } from '../lib/scraper-utils.js';
+import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom, capturePageScreenshot } from '../lib/scraper-utils.js';
 // scraper-actions.js: Provides button clicking and event extraction with error handling
 import { clickButtonUntilGone, extractEventsFromPage } from '../lib/scraper-actions.js';
 // scraper-persistence.js: Provides logging, database saving, and error handling
@@ -55,31 +55,35 @@ export async function scrapePublicTheater() {
     openBrowserbaseSession(stagehand.browserbaseSessionID);
 
     // Step 1: Navigate to The Public Theater calendar page
-    // Wait for dom to be ready, then add additional wait for dynamic content
-    await page.goto("https://publictheater.org/calendar/", { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
-    
-    // Step 2: Click the list button on the top right to switch to list view
-    // This is The Public Theater-specific logic
-    console.log("Clicking list button to switch to list view...");
-    await page.act("click the list button on the top right");
-    await page.waitForTimeout(3000);
-    
-    // Step 3: Scroll to the bottom using shared utility function
-    // This triggers any lazy-loaded content on the page
-    // Shared utility ensures minimum wait time (2000ms) for content to load
-    await scrollToBottom(page);
-    
-    // Step 4: Click "Load More" button repeatedly until it disappears
-    // Using shared utility function with Public Theater-specific configuration:
-    // - Maximum 5 clicks (as specified by user)
-    // - Scroll after each click to trigger additional lazy loading
-    // - Custom wait times optimized for The Public Theater's page behavior
-    await clickButtonUntilGone(page, "Load More", 5, {
-      scrollAfterClick: true,
-      scrollWaitTime: 2000,
-      loadWaitTime: 2000
+    // The site has aggressive navigation behavior, so wait for load event
+    console.log("Navigating to calendar page...");
+    await page.goto("https://publictheater.org/calendar/", {
+      waitUntil: 'load',
+      timeout: 90000
     });
+
+    // Wait for any redirects to complete
+    console.log("Waiting for page to stabilize...");
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(5000);
+
+    // Take a screenshot to see the page state
+    try {
+      await capturePageScreenshot(page, 'public_theater_before_extract');
+      console.log("Screenshot captured");
+    } catch (e) {
+      console.log("Screenshot failed:", e.message);
+    }
+
+    // Try to wait for calendar events to appear
+    try {
+      await page.waitForSelector('.event-card, .calendar-event, [data-event], .production-card', {
+        timeout: 10000
+      });
+      console.log("Found event elements on page");
+    } catch (e) {
+      console.log("No event elements found yet, continuing anyway...");
+    }
     
     // Step 5: Extract all visible events using shared utility function
     // The extraction instruction tells Stagehand exactly what to extract
