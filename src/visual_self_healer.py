@@ -235,9 +235,26 @@ Scraped events sample:
         """Diagnose issues based on scraper output and visual analysis."""
         issues = []
 
-        # Check for browser crashes
-        if "browser has been closed" in stderr or "Target page" in stderr:
-            issues.append("BROWSER_CRASHED")
+        # Check for site blocking (learned: connolly_theatre, village_east)
+        if "ERR_TUNNEL_CONNECTION_FAILED" in stderr or "ERR_TUNNEL_CONNECTION_FAILED" in stdout:
+            issues.append("SITE_BLOCKED")
+            return issues  # No point checking other issues if site is blocked
+
+        # Check for browser crashes specifically after Load More click
+        # (learned: beacon_theatre, carnegie_hall crash after Load More)
+        if ("browser has been closed" in stderr or "Target page" in stderr):
+            if "Load More" in stdout or "clickButtonUntilGone" in stdout:
+                issues.append("LOAD_MORE_CRASH")
+            else:
+                issues.append("BROWSER_CRASHED")
+
+        # Check for 404 pages (learned: apollo_theater, greenwich_house)
+        if "404" in stdout or "Page Not Found" in stdout or "couldn't find anything" in stdout.lower():
+            issues.append("PAGE_404")
+
+        # Check for bad URL extraction (learned: bowery_ballroom)
+        if "Event Image Link" in stdout or "eventUrl" in stdout and "http" not in stdout:
+            issues.append("BAD_URL_EXTRACTION")
 
         # Check for empty results
         if events_count == 0:
@@ -278,7 +295,24 @@ Scraped events sample:
             return self._apply_diagnostic_fix(diagnostic_report)
 
         # Fall back to issue-based fixes
-        if issue == "BROWSER_CRASHED" or issue == "SESSION_CRASH" or issue == "DIAG_SESSION_CRASH":
+
+        # NEW: Handle site blocking (learned from connolly_theatre, village_east)
+        if issue == "SITE_BLOCKED":
+            return False, "Site is blocking Browserbase (ERR_TUNNEL_CONNECTION_FAILED). Cannot auto-fix - site may need different proxy or manual investigation."
+
+        # NEW: Handle Load More causing crash (learned from beacon_theatre, carnegie_hall)
+        elif issue == "LOAD_MORE_CRASH":
+            return self._remove_load_more_clicking()
+
+        # NEW: Handle 404 pages (learned from apollo_theater, greenwich_house)
+        elif issue == "PAGE_404":
+            return self._fix_404_navigation()
+
+        # NEW: Handle bad URL extraction (learned from bowery_ballroom)
+        elif issue == "BAD_URL_EXTRACTION":
+            return self._fix_url_extraction_prompt()
+
+        elif issue == "BROWSER_CRASHED" or issue == "SESSION_CRASH" or issue == "DIAG_SESSION_CRASH":
             # Just retry - browser issues are often transient
             return True, "Will retry with fresh browser session"
 
@@ -902,6 +936,88 @@ Scraped events sample:
         content = content.replace(original_call, optional_wrapper, 1)
         path.write_text(content)
         return True, "Made pagination button click optional (wrapped in try-catch)"
+
+    def _remove_load_more_clicking(self) -> Tuple[bool, str]:
+        """
+        Remove Load More clicking that causes session crashes.
+        Learned from: beacon_theatre, carnegie_hall where clicking Load More
+        caused 'Target page, context or browser has been closed' errors.
+
+        Fix: Remove clickButtonUntilGone call entirely, just extract visible events.
+        """
+        path = Path(self.scraper_path)
+        if not path.exists():
+            return False, "Scraper file not found"
+
+        content = path.read_text()
+        import re
+
+        # Remove clickButtonUntilGone calls
+        pattern = r'\n\s*await clickButtonUntilGone\([^)]+\);?\n'
+        if not re.search(pattern, content):
+            return False, "No clickButtonUntilGone call found"
+
+        content = re.sub(pattern, '\n', content)
+
+        # Add comment explaining why it was removed
+        scroll_pattern = r'(await scrollToBottom\(page\);?)'
+        if re.search(scroll_pattern, content):
+            content = re.sub(
+                scroll_pattern,
+                r'\1\n    await page.waitForTimeout(2000);\n\n    // Load More clicking removed - causes session crashes',
+                content,
+                count=1
+            )
+
+        path.write_text(content)
+        self.log("✅ Removed Load More clicking (was causing session crashes)")
+        return True, "Removed Load More clicking - extract visible events only"
+
+    def _fix_404_navigation(self) -> Tuple[bool, str]:
+        """
+        Fix scraper when initial URL returns 404.
+        Learned from: apollo_theater (/events/ -> homepage), greenwich_house (via footer link).
+
+        Fix: Use exploratory healer to find working navigation pattern.
+        """
+        self.log("🔍 Page returned 404 - will use exploratory healer to find correct navigation")
+
+        # This requires the exploratory healer to find the right pattern
+        # For now, flag it for exploration
+        return False, "Page returned 404 - run exploratory_healer.py to discover correct navigation pattern"
+
+    def _fix_url_extraction_prompt(self) -> Tuple[bool, str]:
+        """
+        Fix URL extraction when scraper extracts descriptions instead of real URLs.
+        Learned from: bowery_ballroom where URLs were 'Event Image Link-...' instead of http URLs.
+
+        Fix: Update extraction prompt to be explicit about URL format.
+        """
+        path = Path(self.scraper_path)
+        if not path.exists():
+            return False, "Scraper file not found"
+
+        content = path.read_text()
+        import re
+
+        # Find extraction prompt and improve it
+        pattern = r'(extractEventsFromPage\(\s*page,\s*["\'])([^"\']+)(["\'])'
+        match = re.search(pattern, content)
+
+        if not match:
+            return False, "Could not find extraction prompt"
+
+        original_prompt = match.group(2)
+
+        # Add URL extraction guidance if not already present
+        if "eventUrl should be" not in original_prompt and "real URL" not in original_prompt.lower():
+            improved_prompt = original_prompt + " IMPORTANT: eventUrl must be an actual URL starting with http/https, not image descriptions or text."
+            content = content.replace(match.group(0), match.group(1) + improved_prompt + match.group(3), 1)
+            path.write_text(content)
+            self.log("✅ Improved extraction prompt to require proper URLs")
+            return True, "Added URL format requirement to extraction prompt"
+
+        return False, "Prompt already has URL guidance"
 
     def _try_write_fix(self, diagnostic_report: DiagnosticReport, issues: List[str]) -> bool:
         """

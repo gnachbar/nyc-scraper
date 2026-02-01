@@ -94,23 +94,28 @@ Context: {context if context else "Looking for events to scrape"}
 
 Please identify:
 
-1. **Current Page State**: What view is shown? (calendar grid, list view, etc.)
+1. **Current Page State**: What view is shown? (calendar grid, list view, 404 error page, etc.)
+   - If this is a 404 error page, look for navigation links in the header/footer to find events
 
 2. **Interactive Elements**: List ALL clickable elements you see:
    - Buttons (especially "List", "Grid", "Calendar", "Load More", "Show More")
    - Navigation arrows (left/right, prev/next month)
    - Tabs or view switchers
    - Date pickers or filters
+   - Footer links (especially "Calendar", "Events", "What's On", "Shows")
+   - Header navigation links
 
 3. **Events Visible**: How many events can you see on the page right now?
 
 4. **Recommended Actions**: What should we click to:
-   a) Switch to a better view for scraping (e.g., list view)
-   b) Load more events (pagination, arrows)
-   c) Navigate to see future events
+   a) If 404 page: navigate to the calendar/events page via header or footer links
+   b) Switch to a better view for scraping (e.g., list view)
+   c) Load more events (pagination, arrows)
+   d) Navigate to see future events
 
 5. **Suggested Click Sequence**: Give a specific sequence of actions to get all events.
    Format each action as: "click [description of element]"
+   IMPORTANT: If page shows 404 or error, first action should navigate to events page
 
 Return your analysis as JSON:
 {{
