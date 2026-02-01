@@ -113,7 +113,7 @@ export function createStandardSchema(options = {}) {
   const eventSchema = {
     eventName: z.string(),
     eventDate: z.string(),
-    eventTime: z.string().default(""), // Required field, empty string if not found
+    eventTime: z.string().nullable().transform(v => v ?? "").default(""), // Handle null from AI responses
     eventDescription: z.string().nullable().transform(v => v ?? "").default(""), // Event description, handles null/undefined/missing gracefully - transforms null to empty string
     // Use lenient URL validation - accept any string, scrapers will normalize
     // Strict .url() validation fails when AI returns relative URLs or imperfect formats
