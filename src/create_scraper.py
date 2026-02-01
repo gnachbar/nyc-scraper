@@ -585,6 +585,7 @@ Examples:
     # Alternative modes
     parser.add_argument('--heal', metavar='SOURCE', help='Heal an existing scraper')
     parser.add_argument('--diagnose', metavar='SOURCE', help='Diagnose an existing scraper')
+    parser.add_argument('--explore', metavar='SOURCE', help='Explore a page to discover the right interaction pattern')
     parser.add_argument('--list-templates', action='store_true', help='List available templates')
 
     args = parser.parse_args()
@@ -603,6 +604,38 @@ Examples:
     if args.diagnose:
         report = diagnose_existing_scraper(args.diagnose, not args.quiet)
         sys.exit(0 if report.confidence > 0.5 else 1)
+
+    if args.explore:
+        from src.exploratory_healer import ExploratoryHealer
+        import re
+
+        source = args.explore
+        # Try to find URL from existing scraper
+        scraper_path = Path(f"src/scrapers/{source}.js")
+        url = None
+        if scraper_path.exists():
+            content = scraper_path.read_text()
+            url_match = re.search(r'page\.goto\(["\']([^"\']+)["\']', content)
+            if url_match:
+                url = url_match.group(1)
+
+        if not url:
+            print(f"Error: Could not find URL for {source}. Provide URL as second argument.")
+            sys.exit(1)
+
+        print(f"Exploring {source} at {url}...")
+        healer = ExploratoryHealer(source, url, verbose=not args.quiet)
+        results = healer.explore_and_discover()
+
+        if results.get("best_pattern"):
+            print(f"\nDiscovered pattern: {results['best_pattern']['actions']}")
+            print(f"Events found: {results['best_pattern']['events']}")
+            if results.get("generated_scraper"):
+                print("\nGenerated scraper code available in results file.")
+            sys.exit(0)
+        else:
+            print("\nCould not discover a working pattern.")
+            sys.exit(1)
 
     # Creation mode - require venue_name and url
     if not args.venue_name or not args.url:
