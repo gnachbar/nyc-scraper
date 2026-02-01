@@ -6,7 +6,7 @@
  */
 
 import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom } from '../lib/scraper-utils.js';
-import { extractEventsFromPage, clickButtonUntilGone } from '../lib/scraper-actions.js';
+import { extractEventsFromPage, clickButtonUntilGone, extractEventTimesFromPages } from '../lib/scraper-actions.js';
 import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
 
 const StandardEventSchema = createStandardSchema({ eventLocationDefault: 'The Shed' });
@@ -35,7 +35,7 @@ export async function scrapeTheShed() {
 
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events/programs. For each event, get the event name, date, and TIME (look for specific showtimes). Also get description if visible and the event URL. Set eventLocation to 'The Shed' for all events. IMPORTANT: Extract the event time for each event.",
+      "Extract all visible events/programs. For each event, get the event name, date range (e.g., 'Jan 9 - Mar 1'), and the event URL (must be a valid https URL). Set eventLocation to 'The Shed' for all events.",
       StandardEventSchema,
       { sourceName: 'the_shed' }
     );
@@ -44,6 +44,15 @@ export async function scrapeTheShed() {
       ...event,
       eventLocation: "The Shed"
     }));
+
+    // Visit individual event pages to extract times (The Shed doesn't show times on listing)
+    console.log("Extracting times from individual event pages...");
+    events = await extractEventTimesFromPages(stagehand, events, {
+      timeout: 30000,
+      delay: 1000,
+      useNetworkIdle: false,
+      domWaitMs: 3000
+    });
 
     logScrapingResults(events, 'The Shed');
 

@@ -6,7 +6,7 @@
  */
 
 import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom } from '../lib/scraper-utils.js';
-import { extractEventsFromPage, clickButtonUntilGone } from '../lib/scraper-actions.js';
+import { extractEventsFromPage, clickButtonUntilGone, extractEventTimesFromPages } from '../lib/scraper-actions.js';
 import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
 
 const StandardEventSchema = createStandardSchema({ eventLocationDefault: '92nd Street Y' });
@@ -35,7 +35,7 @@ export async function scrape92ndStreetY() {
 
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events. For each event, get the event name, date, time, description if visible, and the event URL. Set eventLocation to '92nd Street Y' for all events.",
+      "Extract all visible events. For each event, get the event name, date, and the event URL (must be a valid https URL). Set eventLocation to '92nd Street Y' for all events.",
       StandardEventSchema,
       { sourceName: '92nd_street_y' }
     );
@@ -44,6 +44,15 @@ export async function scrape92ndStreetY() {
       ...event,
       eventLocation: "92nd Street Y"
     }));
+
+    // Visit individual event pages to extract times (improves time extraction accuracy)
+    console.log("Extracting times from individual event pages...");
+    events = await extractEventTimesFromPages(stagehand, events, {
+      timeout: 30000,
+      delay: 1000,
+      useNetworkIdle: false,
+      domWaitMs: 3000
+    });
 
     logScrapingResults(events, '92nd Street Y');
 

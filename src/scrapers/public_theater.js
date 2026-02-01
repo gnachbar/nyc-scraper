@@ -14,7 +14,7 @@
 // scraper-utils.js: Provides initialization, schema creation, and scrolling helpers
 import { initStagehand, openBrowserbaseSession, createStandardSchema, scrollToBottom, capturePageScreenshot } from '../lib/scraper-utils.js';
 // scraper-actions.js: Provides button clicking and event extraction with error handling
-import { clickButtonUntilGone, extractEventsFromPage } from '../lib/scraper-actions.js';
+import { clickButtonUntilGone, extractEventsFromPage, extractEventTimesFromPages } from '../lib/scraper-actions.js';
 // scraper-persistence.js: Provides logging, database saving, and error handling
 import { logScrapingResults, saveEventsToDatabase, handleScraperError } from '../lib/scraper-persistence.js';
 
@@ -100,10 +100,19 @@ export async function scrapePublicTheater() {
     // Backup: Add hardcoded venue name to all events
     // This ensures eventLocation is set even if schema default fails
     // This is scraper-specific logic, not shared utility
-    const eventsWithLocation = result.events.map(event => ({
+    let eventsWithLocation = result.events.map(event => ({
       ...event,
       eventLocation: "The Public Theater"
     }));
+
+    // Visit individual event pages to extract times (improves time extraction accuracy)
+    console.log("Extracting times from individual event pages...");
+    eventsWithLocation = await extractEventTimesFromPages(stagehand, eventsWithLocation, {
+      timeout: 30000,
+      delay: 1000,
+      useNetworkIdle: false,
+      domWaitMs: 3000
+    });
 
     // Log scraping results using shared utility function
     // This logs total events, events with/without times, and sample events

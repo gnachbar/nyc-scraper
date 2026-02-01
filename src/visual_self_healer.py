@@ -256,6 +256,13 @@ Scraped events sample:
         if "Event Image Link" in stdout or "eventUrl" in stdout and "http" not in stdout:
             issues.append("BAD_URL_EXTRACTION")
 
+        # Check for missing times (learned: the_shed, 92nd_street_y, public_theater)
+        # Detect when many events have no time or show "N/A" times
+        if events_count > 0:
+            no_time_count = stdout.lower().count("time: n/a") + stdout.lower().count("time: none") + stdout.lower().count("time: \n")
+            if no_time_count > events_count * 0.5:  # More than 50% missing times
+                issues.append("MISSING_TIMES")
+
         # Check for empty results
         if events_count == 0:
             issues.append("EMPTY_RESULTS")
@@ -311,6 +318,10 @@ Scraped events sample:
         # NEW: Handle bad URL extraction (learned from bowery_ballroom)
         elif issue == "BAD_URL_EXTRACTION":
             return self._fix_url_extraction_prompt()
+
+        # NEW: Handle missing times by visiting event pages (learned from the_shed, 92nd_street_y)
+        elif issue == "MISSING_TIMES":
+            return self._add_event_page_time_extraction()
 
         elif issue == "BROWSER_CRASHED" or issue == "SESSION_CRASH" or issue == "DIAG_SESSION_CRASH":
             # Just retry - browser issues are often transient
@@ -1018,6 +1029,65 @@ Scraped events sample:
             return True, "Added URL format requirement to extraction prompt"
 
         return False, "Prompt already has URL guidance"
+
+    def _add_event_page_time_extraction(self) -> Tuple[bool, str]:
+        """
+        Add extraction of times from individual event pages.
+        Learned from: the_shed, 92nd_street_y, public_theater where times weren't on listing page.
+
+        Fix: Add call to extractEventTimesFromPages() to visit each event URL and extract times.
+        """
+        path = Path(self.scraper_path)
+        if not path.exists():
+            return False, "Scraper file not found"
+
+        content = path.read_text()
+        import re
+
+        # Check if already has extractEventTimesFromPages
+        if "extractEventTimesFromPages" in content:
+            return False, "Already uses extractEventTimesFromPages"
+
+        # Add import for extractEventTimesFromPages
+        import_pattern = r"(import \{[^}]*extractEventsFromPage[^}]*\} from ['\"]\.\.\/lib\/scraper-actions\.js['\"];)"
+        import_match = re.search(import_pattern, content)
+
+        if not import_match:
+            return False, "Could not find scraper-actions import"
+
+        # Add extractEventTimesFromPages to import
+        old_import = import_match.group(1)
+        if "extractEventTimesFromPages" not in old_import:
+            new_import = old_import.replace("extractEventsFromPage", "extractEventsFromPage, extractEventTimesFromPages")
+            content = content.replace(old_import, new_import, 1)
+
+        # Find where events are mapped and add the time extraction call after
+        map_pattern = r"(let events = result\.events\.map\([^}]+\}\);)"
+        map_match = re.search(map_pattern, content)
+
+        if not map_match:
+            # Try alternative pattern with const
+            map_pattern = r"(const eventsWithLocation = result\.events\.map\([^}]+\}\);)"
+            map_match = re.search(map_pattern, content)
+
+        if map_match:
+            original_code = map_match.group(1)
+            time_extraction_code = f'''
+    // Visit individual event pages to extract times (auto-added by self-healer)
+    console.log("Extracting times from individual event pages...");
+    events = await extractEventTimesFromPages(stagehand, events, {{
+      timeout: 30000,
+      delay: 1000,
+      useNetworkIdle: false,
+      domWaitMs: 3000
+    }});
+'''
+            content = content.replace(original_code, original_code + time_extraction_code, 1)
+            path.write_text(content)
+            self.log("✅ Added extractEventTimesFromPages to visit event pages for times")
+            return True, "Added event page time extraction (extractEventTimesFromPages)"
+
+        return False, "Could not find events mapping code to modify"
 
     def _try_write_fix(self, diagnostic_report: DiagnosticReport, issues: List[str]) -> bool:
         """
