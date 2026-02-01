@@ -16,7 +16,7 @@
                 <div class="filter-container">
                     <div class="filter-section">
                         <label for="venue-filter">Venue</label>
-                        <select name="venue" id="venue-filter">
+                        <select name="venue" id="venue-filter" onchange="this.form.submit()">
                             <option value="">All Venues</option>
                             {% for venue in venues %}
                                 <option value="{{ venue }}" {% if venue_filter == venue %}selected{% endif %}>

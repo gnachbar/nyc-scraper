@@ -12,7 +12,9 @@ When a scraper fails to find events, this module:
 This is "creative exploration" rather than "fix known errors".
 """
 
-import anthropic
+import openai
+from dotenv import load_dotenv
+load_dotenv()
 import base64
 import json
 import os
@@ -64,7 +66,7 @@ class ExploratoryHealer:
         self.source = source
         self.url = url
         self.verbose = verbose
-        self.client = anthropic.Anthropic()
+        self.client = openai.OpenAI()
         self.explorations: List[ExplorationResult] = []
         self.discovered_patterns: List[InteractionPattern] = []
 
@@ -128,19 +130,17 @@ Return your analysis as JSON:
 }}
 """
 
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
+        response = self.client.chat.completions.create(
+            model="gpt-4o",
             max_tokens=2000,
             messages=[
                 {
                     "role": "user",
                     "content": [
                         {
-                            "type": "image",
-                            "source": {
-                                "type": "base64",
-                                "media_type": "image/png",
-                                "data": image_data
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{image_data}"
                             }
                         },
                         {
@@ -153,7 +153,7 @@ Return your analysis as JSON:
         )
 
         # Parse the response
-        response_text = response.content[0].text
+        response_text = response.choices[0].message.content
 
         # Try to extract JSON from the response
         try:

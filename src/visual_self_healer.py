@@ -915,15 +915,17 @@ Scraped events sample:
         And writes a targeted fix.
         """
         try:
-            import anthropic
+            import openai
             import os
+            from dotenv import load_dotenv
+            load_dotenv()
 
-            api_key = os.environ.get('ANTHROPIC_API_KEY')
+            api_key = os.environ.get('OPENAI_API_KEY')
             if not api_key:
-                self.log("   Cannot write fix - ANTHROPIC_API_KEY not set")
+                self.log("   Cannot write fix - OPENAI_API_KEY not set")
                 return False
 
-            client = anthropic.Anthropic(api_key=api_key)
+            client = openai.OpenAI(api_key=api_key)
 
             # Read current scraper code
             scraper_path = Path(self.scraper_path)
@@ -976,13 +978,13 @@ If you can't determine a fix, set can_fix to false and explain why.
 Be precise with the search strings - they must match exactly.
 """
 
-            response = client.messages.create(
-                model="claude-sonnet-4-20250514",
+            response = client.chat.completions.create(
+                model="gpt-4o",
                 max_tokens=2000,
                 messages=[{"role": "user", "content": prompt}]
             )
 
-            response_text = response.content[0].text
+            response_text = response.choices[0].message.content
 
             # Parse JSON response
             import json
@@ -1123,9 +1125,17 @@ Be precise with the search strings - they must match exactly.
         # Step 5: Combine all issue sources (including Browserbase feedback)
         issues = self._combine_issues(stdout, stderr, events_count, visual_analysis, diagnostic_report, bb_analysis)
 
+        # Determine success: scraper ran AND got events
+        # Issues like NO_SCROLL are warnings, not failures if we got data
+        informational_issues = {"NO_SCROLL", "INSUFFICIENT_SCROLL", "STALE_DATA"}
+        blocking_issues = [i for i in issues if i not in informational_issues]
+
+        # Success = scraper ran + got events + no blocking issues
+        is_success = success and events_count > 0 and len(blocking_issues) == 0
+
         result = ScraperIteration(
             iteration=iteration,
-            success=success and len(issues) == 0 and events_count > 0,
+            success=is_success,
             events_scraped=events_count,
             screenshot_path=screenshot_path,
             duration_seconds=time.time() - start_time,
@@ -1134,8 +1144,10 @@ Be precise with the search strings - they must match exactly.
             diagnostic_report=diagnostic_report
         )
 
-        if issues:
-            self.log(f"⚠️  Issues detected: {issues}")
+        if blocking_issues:
+            self.log(f"⚠️  Issues detected: {blocking_issues}")
+        elif issues:
+            self.log(f"ℹ️  Warnings (non-blocking): {issues}")
 
         return result
 
