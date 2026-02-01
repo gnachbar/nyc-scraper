@@ -903,6 +903,130 @@ Scraped events sample:
         path.write_text(content)
         return True, "Made pagination button click optional (wrapped in try-catch)"
 
+    def _try_write_fix(self, diagnostic_report: DiagnosticReport, issues: List[str]) -> bool:
+        """
+        When we have a diagnosed error but no pre-built fix, use Claude to write one.
+
+        This analyzes:
+        - The error/diagnosis
+        - The current scraper code
+        - Similar working scrapers
+
+        And writes a targeted fix.
+        """
+        try:
+            import anthropic
+            import os
+
+            api_key = os.environ.get('ANTHROPIC_API_KEY')
+            if not api_key:
+                self.log("   Cannot write fix - ANTHROPIC_API_KEY not set")
+                return False
+
+            client = anthropic.Anthropic(api_key=api_key)
+
+            # Read current scraper code
+            scraper_path = Path(self.scraper_path)
+            if not scraper_path.exists():
+                return False
+
+            current_code = scraper_path.read_text()
+
+            # Find a working scraper for reference
+            reference_code = ""
+            for ref_scraper in Path("src/scrapers").glob("*.js"):
+                if ref_scraper.stem != self.source:
+                    reference_code = ref_scraper.read_text()
+                    break
+
+            prompt = f"""You are a web scraping expert. A scraper is failing and needs a fix.
+
+## Diagnosis
+- **Failure Category**: {diagnostic_report.failure_category}
+- **Pattern**: {diagnostic_report.failure_pattern}
+- **Observations**: {diagnostic_report.observations}
+- **Issues Detected**: {issues}
+
+## Current Scraper Code
+```javascript
+{current_code[:3000]}  // truncated
+```
+
+## Reference Working Scraper
+```javascript
+{reference_code[:2000]}  // truncated
+```
+
+## Task
+Write the MINIMAL code changes needed to fix this issue.
+
+Return your response as JSON:
+{{
+  "can_fix": true/false,
+  "explanation": "what the fix does",
+  "search_replace": [
+    {{
+      "search": "exact code to find",
+      "replace": "code to replace it with"
+    }}
+  ]
+}}
+
+If you can't determine a fix, set can_fix to false and explain why.
+Be precise with the search strings - they must match exactly.
+"""
+
+            response = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            response_text = response.content[0].text
+
+            # Parse JSON response
+            import json
+            import re
+            json_match = re.search(r'\{[\s\S]*\}', response_text)
+            if not json_match:
+                self.log("   Could not parse fix response")
+                return False
+
+            fix_data = json.loads(json_match.group())
+
+            if not fix_data.get("can_fix"):
+                self.log(f"   Cannot auto-fix: {fix_data.get('explanation', 'unknown reason')}")
+                return False
+
+            # Apply the fix
+            modified_code = current_code
+            for change in fix_data.get("search_replace", []):
+                search = change.get("search", "")
+                replace = change.get("replace", "")
+                if search and search in modified_code:
+                    modified_code = modified_code.replace(search, replace, 1)
+                    self.log(f"   Applied change: {fix_data.get('explanation', 'fix')}")
+
+            if modified_code != current_code:
+                # Backup and save
+                backup_path = scraper_path.with_suffix('.js.backup_written_fix')
+                if not backup_path.exists():
+                    import shutil
+                    shutil.copy(scraper_path, backup_path)
+
+                scraper_path.write_text(modified_code)
+                self.log(f"   Fix written to scraper")
+                return True
+
+            return False
+
+        except ImportError:
+            self.log("   Cannot write fix - anthropic module not installed")
+            return False
+        except Exception as e:
+            self.log(f"   Error writing fix: {e}")
+            return False
+
     def _try_exploratory_healing(self) -> bool:
         """
         Try exploratory healing when standard fixes fail.
@@ -1198,16 +1322,24 @@ Scraped events sample:
                         break  # Apply one fix at a time
 
                 if not fix_applied and not iteration.fixes_applied:
-                    # Before giving up, try exploratory healing
-                    self.log("🔍 No standard fixes worked - trying exploratory discovery...")
+                    # Step 1: If we have a diagnosis but no pre-built fix, try to WRITE a fix
+                    if iteration.diagnostic_report and iteration.diagnostic_report.failure_category != "unknown":
+                        self.log(f"🔧 No pre-built fix for '{iteration.diagnostic_report.failure_category}' - attempting to write one...")
+                        write_success = self._try_write_fix(iteration.diagnostic_report, iteration.issues)
+                        if write_success:
+                            self.log("✨ Wrote a custom fix - will retry")
+                            continue  # Retry with new fix
+
+                    # Step 2: Try exploratory healing (discover interaction patterns)
+                    self.log("🔍 Trying exploratory discovery...")
                     exploration_success = self._try_exploratory_healing()
                     if exploration_success:
                         self.log("✨ Exploration found a pattern - will retry")
                         continue  # Retry with new pattern
-                    else:
-                        self.log("❌ No fixes could be applied - stopping")
-                        results["final_status"] = "failed_no_fix"
-                        break
+
+                    self.log("❌ No fixes could be applied - stopping")
+                    results["final_status"] = "failed_no_fix"
+                    break
 
             # Capture error for next iteration's diagnosis
             if iteration.issues:
