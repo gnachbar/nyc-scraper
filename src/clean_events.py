@@ -786,7 +786,10 @@ def mark_recurring_events():
         # Count distinct dates per group, mark as recurring if count >= 2
         from sqlalchemy import func, distinct
         
-        # Find groups with 2+ distinct dates
+        # Find groups with 2+ distinct dates spanning 21+ days (3+ weeks)
+        # This excludes multi-night concert runs (e.g., Cardi B playing 2 consecutive nights)
+        # but catches true recurring series (e.g., weekly museum tours)
+        from sqlalchemy import extract
         recurring_groups = session.query(
             CleanEvent.display_venue,
             CleanEvent.recurrence_key,
@@ -798,7 +801,9 @@ def mark_recurring_events():
             CleanEvent.display_venue,
             CleanEvent.recurrence_key
         ).having(
-            func.count(distinct(func.date(CleanEvent.start_time))) >= 2
+            func.count(distinct(func.date(CleanEvent.start_time))) >= 2,
+            # Require at least 21 days between first and last occurrence (PostgreSQL syntax)
+            extract('epoch', func.max(CleanEvent.start_time) - func.min(CleanEvent.start_time)) / 86400 >= 21
         ).all()
         
         # Mark all events in these groups as recurring
