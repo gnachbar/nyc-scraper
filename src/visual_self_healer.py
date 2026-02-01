@@ -903,6 +903,56 @@ Scraped events sample:
         path.write_text(content)
         return True, "Made pagination button click optional (wrapped in try-catch)"
 
+    def _try_exploratory_healing(self) -> bool:
+        """
+        Try exploratory healing when standard fixes fail.
+        Uses Claude vision to analyze the page and discover interaction patterns.
+        """
+        try:
+            from src.exploratory_healer import ExploratoryHealer
+            import re
+
+            # Get URL from scraper
+            scraper_path = Path(self.scraper_path)
+            if not scraper_path.exists():
+                self.log("   Cannot explore - scraper file not found")
+                return False
+
+            content = scraper_path.read_text()
+            url_match = re.search(r'page\.goto\(["\']([^"\']+)["\']', content)
+            if not url_match:
+                self.log("   Cannot explore - URL not found in scraper")
+                return False
+
+            url = url_match.group(1)
+            self.log(f"   Exploring: {url}")
+
+            # Run exploratory healing
+            healer = ExploratoryHealer(self.source, url, verbose=False)
+            results = healer.explore_and_discover(max_iterations=3)
+
+            if results.get("best_pattern") and results["events_found"] > 0:
+                self.log(f"   Found pattern with {results['events_found']} events!")
+                self.log(f"   Actions: {results['best_pattern']['actions']}")
+
+                # If we have generated scraper code, update the scraper
+                if results.get("generated_scraper"):
+                    # Backup and update
+                    backup_path = scraper_path.with_suffix('.js.backup')
+                    scraper_path.rename(backup_path)
+                    scraper_path.write_text(results["generated_scraper"])
+                    self.log(f"   Updated scraper with discovered pattern")
+                    return True
+
+            return False
+
+        except ImportError:
+            self.log("   Exploratory healer not available")
+            return False
+        except Exception as e:
+            self.log(f"   Exploration failed: {e}")
+            return False
+
     def run_iteration(self, iteration: int, previous_error: str = "") -> ScraperIteration:
         """Run a single iteration of scrape -> diagnose -> analyze -> fix."""
         self.log(f"\n{'='*60}")
@@ -1148,9 +1198,16 @@ Scraped events sample:
                         break  # Apply one fix at a time
 
                 if not fix_applied and not iteration.fixes_applied:
-                    self.log("❌ No fixes could be applied - stopping")
-                    results["final_status"] = "failed_no_fix"
-                    break
+                    # Before giving up, try exploratory healing
+                    self.log("🔍 No standard fixes worked - trying exploratory discovery...")
+                    exploration_success = self._try_exploratory_healing()
+                    if exploration_success:
+                        self.log("✨ Exploration found a pattern - will retry")
+                        continue  # Retry with new pattern
+                    else:
+                        self.log("❌ No fixes could be applied - stopping")
+                        results["final_status"] = "failed_no_fix"
+                        break
 
             # Capture error for next iteration's diagnosis
             if iteration.issues:
