@@ -35,7 +35,7 @@ export async function scrapeTheShed() {
 
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events/programs. For each event, get the event name, date, time, description if visible, and the event URL. Set eventLocation to 'The Shed' for all events.",
+      "Extract all visible events/programs. For each event, get the event name, date, and TIME (look for specific showtimes). Also get description if visible and the event URL. Set eventLocation to 'The Shed' for all events. IMPORTANT: Extract the event time for each event.",
       StandardEventSchema,
       { sourceName: 'the_shed' }
     );

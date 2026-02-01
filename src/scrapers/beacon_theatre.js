@@ -29,14 +29,9 @@ export async function scrapeBeaconTheatre() {
 
     // Scroll to load events
     await scrollToBottom(page);
+    await page.waitForTimeout(2000);
 
-    // Click "Load More" or "See More" if available
-    await clickButtonUntilGone(page, "Load More", 10, {
-      scrollAfterClick: true,
-      loadWaitTime: 2000
-    });
-
-    // Extract events
+    // Extract events (skip Load More due to session stability issues)
     const result = await extractEventsFromPage(
       page,
       "Extract all visible events/shows. For each event, get the event name, date, time, description if visible, and the event URL. Set eventLocation to 'Beacon Theatre' for all events.",

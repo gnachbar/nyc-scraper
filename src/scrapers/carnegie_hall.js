@@ -27,12 +27,9 @@ export async function scrapeCarnegieHall() {
     await page.waitForTimeout(5000);
 
     await scrollToBottom(page);
+    await page.waitForTimeout(2000);
 
-    await clickButtonUntilGone(page, "Load More", 15, {
-      scrollAfterClick: true,
-      loadWaitTime: 2000
-    });
-
+    // Extract events (skip Load More due to session stability issues)
     const result = await extractEventsFromPage(
       page,
       "Extract all visible events/concerts. For each event, get the event name, date, time, venue/hall name if shown (Stern Auditorium, Zankel Hall, Weill Recital Hall), description if visible, and the event URL. Include the specific hall in eventLocation if visible, otherwise use 'Carnegie Hall'.",

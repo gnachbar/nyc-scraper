@@ -34,7 +34,7 @@ export async function scrapeBoweryBallroom() {
     // Extract events
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events/shows. For each event, get the event name, date, time, description if visible, and the event URL. Set eventLocation to 'Bowery Ballroom' for all events.",
+      "Extract all visible events/shows from this page. For each event:\n- eventName: the artist/show name\n- eventDate: the full date (e.g., 'March 7, 2026')\n- eventTime: the doors/show time (e.g., '8:00 PM')\n- eventUrl: the ACTUAL URL link to the event page (click the event to find the real URL, not the image URL)\n- eventLocation: 'Bowery Ballroom'\nIMPORTANT: eventUrl should be a real URL starting with http/https, not image descriptions.",
       StandardEventSchema,
       { sourceName: 'bowery_ballroom' }
     );
