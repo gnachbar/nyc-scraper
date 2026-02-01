@@ -7,6 +7,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Get the correct Python command (prefer venv if available)
+ */
+function getPythonCommand() {
+  const venvPython = path.join(process.cwd(), 'venv', 'bin', 'python');
+  if (fs.existsSync(venvPython)) {
+    return venvPython;
+  }
+  return 'python3';
+}
+
+/**
  * Extract event times from individual event pages using Python BeautifulSoup
  * This is a more reliable method than Stagehand for certain websites that embed
  * time data in JSON-LD or other structured data.
@@ -31,10 +42,11 @@ export async function extractEventTimesWithPython(events, options = {}) {
     fs.writeFileSync(tempInputFile, JSON.stringify(events, null, 2));
     console.log(`Wrote ${events.length} events to temporary file: ${tempInputFile}`);
     
-    // Call the Python script
+    // Call the Python script (use venv Python if available)
     const pythonScript = path.join(__dirname, '..', 'extract_event_times.py');
+    const pythonCmd = getPythonCommand();
     const cmd = [
-      'python3',
+      pythonCmd,
       pythonScript,
       tempInputFile,
       tempOutputFile,

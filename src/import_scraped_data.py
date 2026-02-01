@@ -291,7 +291,7 @@ def main():
     args = parser.parse_args()
     
     # Validate source
-    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records', 'brooklyn_library']
+    valid_sources = ['kings_theatre', 'prospect_park', 'msg_calendar', 'brooklyn_museum', 'public_theater', 'brooklyn_paramount', 'bric_house', 'barclays_center', 'bam', 'lepistol', 'roulette', 'crown_hill_theatre', 'soapbox_gallery', 'farm_one', 'union_hall', 'bell_house', 'littlefield', 'shapeshifter_plus', 'concerts_on_the_slope', 'public_records', 'brooklyn_library', 'brooklyn_bowl']
     if args.source not in valid_sources:
         logger.error(f"Invalid source '{args.source}'. Must be one of: {valid_sources}")
         sys.exit(1)

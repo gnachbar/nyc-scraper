@@ -65,34 +65,60 @@ This architecture ensures:
 - Reduced code duplication
 - Easier maintenance and updates
 
-### Creating New Scrapers
+### Creating New Scrapers (Automated)
 
-This project uses a **staging-to-production workflow** for developing new scrapers:
+The easiest way to create a new scraper is using the automated creation tool with built-in **self-healing**:
+
+```bash
+# Create a new scraper with automatic testing and self-healing
+python src/create_scraper.py "Brooklyn Bowl" "https://www.brooklynbowl.com/events"
+
+# Use click pagination template (for "Load More" buttons)
+python src/create_scraper.py "Barclays Center" "https://barclayscenter.com/events" --template click
+```
+
+This will:
+1. **Generate** a scraper from a template
+2. **Test** it automatically
+3. **Diagnose** issues using code analysis and Browserbase session logs
+4. **Fix** common issues automatically
+5. **Iterate** until success
+
+### Self-Healing System
+
+The project includes an intelligent self-healing system that can automatically detect and fix:
+
+| Issue | Detection | Auto-Fix |
+|-------|-----------|----------|
+| Navigation timeout | "Timeout exceeded" | Extended timeout, retry logic |
+| Case-sensitive selectors | "button found after 0 clicks" | Case-insensitive regex |
+| Missing Python modules | "ModuleNotFoundError" | Use venv Python |
+| No scroll events | Browserbase session analysis | Add scroll verification |
+| Session crashes | "Target page closed" | Health checks, batching |
+
+**Heal an existing scraper:**
+```bash
+python src/create_scraper.py --heal [source_name]
+```
+
+**Diagnose scraper issues:**
+```bash
+python src/create_scraper.py --diagnose [source_name]
+```
+
+See `docs/self-healing-system.md` for full documentation.
+
+### Manual Workflow
+
+If you prefer manual control:
 
 1. **Create scraper** → Save to `src/scrapers-staging/{venue_name}.js`
-   - Follow the guide in `docs/stagehand-scraper-guide.md`
-   - Use the shared utilities from `src/lib/`
-   - Reference `src/scrapers/msg_calendar.js` as a complete working example
-
 2. **Test manually** → `node src/scrapers-staging/{venue_name}.js`
-
 3. **Validate** → `python src/test_staging_scraper.py {venue_name}`
-   - Runs schema, field, and instruction validation tests
-
 4. **Promote** → `python src/promote_scraper.py {venue_name}`
-   - Moves scraper to production directory
-   - Updates pipeline configuration automatically
+5. **Production run** → `python src/run_pipeline.py --source {venue_name}`
 
-5. **First production run** → `python src/run_pipeline.py --source {venue_name}`
-   - Runs full pipeline (scrape → clean → test) for this scraper only
-
-6. **Verify data** → Check `raw_events` and `clean_events` tables
-
-7. **Done!** → Scraper is now in production and runs automatically
-
-See `src/scrapers-staging/README.md` for detailed workflow instructions.
-
-**New to adding scrapers?** Check out **[CONTRIBUTING.md](CONTRIBUTING.md)** for a complete guide on how to add new scrapers to the project.
+**New to adding scrapers?** Check out **[CONTRIBUTING.md](CONTRIBUTING.md)** for a complete guide.
 
 ## Running the Application
 
@@ -117,9 +143,10 @@ python src/run_pipeline.py
 ## Documentation
 
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Complete guide for adding new scrapers (start here!)
+- `docs/self-healing-system.md` - Self-healing diagnostics and auto-fix documentation
 - `docs/stagehand-scraper-guide.md` - Detailed guide for using Stagehand
+- `docs/SCRAPER_QUALITY_PLAN.md` - Quality standards for scrapers
 - `src/scrapers-staging/README.md` - Staging workflow instructions
-- Other workflow files for AI-assisted development
 
 ## Test Outputs
 

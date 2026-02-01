@@ -4,8 +4,11 @@ Staging Scraper Validation Script
 
 Validates a staging scraper before promotion to production.
 Tests schema, field population, instructions, and database import.
+
+Supports --json flag for machine-readable output (used by run_staging_scraper.py).
 """
 
+import json
 import re
 import sys
 import subprocess
@@ -357,26 +360,102 @@ def parse_events_scraped(output: str) -> int:
     return 0
 
 
+def run_all_validations_json(source: str) -> Dict:
+    """Run all validation tests and return results as JSON-serializable dict."""
+    results = {
+        "source": source,
+        "all_passed": False,
+        "results": {},
+        "messages": {}
+    }
+
+    try:
+        content = read_staging_scraper(source)
+    except FileNotFoundError as e:
+        results["results"]["file_exists"] = False
+        results["messages"]["file_exists"] = str(e)
+        return results
+
+    # Test 1: File exists
+    passed, msg = test_file_exists(source)
+    results["results"]["file_exists"] = passed
+    results["messages"]["file_exists"] = msg
+
+    # Test 2: Uses shared utilities
+    passed, missing = test_uses_shared_utilities(content)
+    results["results"]["uses_shared_utilities"] = passed
+    results["messages"]["uses_shared_utilities"] = "OK" if passed else f"Missing: {', '.join(missing)}"
+
+    # Test 3: Schema definition
+    passed, fields = test_schema_definition(content)
+    results["results"]["schema_definition"] = passed
+    if not passed:
+        missing_fields = [f for f, p in fields.items() if not p]
+        results["messages"]["schema_definition"] = f"Missing: {', '.join(missing_fields)}"
+    else:
+        results["messages"]["schema_definition"] = "OK"
+
+    # Test 4: Extraction instruction
+    passed, msg = test_extraction_instruction(content)
+    results["results"]["extraction_instruction"] = passed
+    results["messages"]["extraction_instruction"] = msg
+
+    # Test 5: Location handling
+    passed, msg = test_location_handling(content, source)
+    results["results"]["location_handling"] = passed
+    results["messages"]["location_handling"] = msg
+
+    # Test 6: Error handling
+    passed, msg = test_error_handling(content)
+    results["results"]["error_handling"] = passed
+    results["messages"]["error_handling"] = msg
+
+    # Test 7: Database save
+    passed, msg = test_database_save(content)
+    results["results"]["database_save"] = passed
+    results["messages"]["database_save"] = msg
+
+    # Test 8: Export structure
+    passed, msg = test_export_structure(content)
+    results["results"]["export_structure"] = passed
+    results["messages"]["export_structure"] = msg
+
+    # Test 9: Browserbase session
+    passed, msg = test_browserbase_session(content)
+    results["results"]["browserbase_session"] = passed
+    results["messages"]["browserbase_session"] = msg
+
+    # Test 10: Time regression check
+    passed, msg = test_time_regression(source)
+    results["results"]["time_regression"] = passed
+    results["messages"]["time_regression"] = msg
+
+    # Calculate overall pass/fail
+    results["all_passed"] = all(results["results"].values())
+
+    return results
+
+
 def run_all_validations(source: str) -> Dict[str, bool]:
     """Run all validation tests for a staging scraper."""
     print(f"\n{'='*80}")
     print(f"VALIDATING STAGING SCRAPER: {source}")
     print(f"{'='*80}\n")
-    
+
     try:
         content = read_staging_scraper(source)
     except FileNotFoundError as e:
         print(f"✗ ERROR: {e}")
         return {'file_exists': False}
-    
+
     results = {}
-    
+
     # Test 1: File exists
     print("1. File Exists")
     passed, msg = test_file_exists(source)
     results['file_exists'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 2: Uses shared utilities
     print("2. Uses Shared Utilities")
     passed, missing = test_uses_shared_utilities(content)
@@ -386,7 +465,7 @@ def run_all_validations(source: str) -> Dict[str, bool]:
     else:
         print(f"   ✗ Missing utilities: {', '.join(missing)}")
     print()
-    
+
     # Test 3: Schema definition
     print("3. Schema Definition")
     passed, fields = test_schema_definition(content)
@@ -397,54 +476,54 @@ def run_all_validations(source: str) -> Dict[str, bool]:
         missing_fields = [f for f, p in fields.items() if not p]
         print(f"   ✗ Missing fields: {', '.join(missing_fields)}")
     print()
-    
+
     # Test 4: Extraction instruction
     print("4. Extraction Instruction")
     passed, msg = test_extraction_instruction(content)
     results['extraction_instruction'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 5: Location handling
     print("5. Location Handling")
     passed, msg = test_location_handling(content, source)
     results['location_handling'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 6: Error handling
     print("6. Error Handling")
     passed, msg = test_error_handling(content)
     results['error_handling'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 7: Database save
     print("7. Database Save")
     passed, msg = test_database_save(content)
     results['database_save'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 8: Export structure
     print("8. Export Structure")
     passed, msg = test_export_structure(content)
     results['export_structure'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 9: Browserbase session
     print("9. Browserbase Session")
     passed, msg = test_browserbase_session(content)
     results['browserbase_session'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 10: Time regression check
     print("10. Time Regression Check")
     passed, msg = test_time_regression(source)
     results['time_regression'] = passed
     print(f"   {'✓' if passed else '✗'} {msg}\n")
-    
+
     # Test 11: Run scraper (optional - commented out by default as it's expensive)
     print("11. Run Scraper (Manual Test)")
     print("   ℹ Run manually: node src/scrapers-staging/{source}.js")
     print("   ℹ Check that events are populated in database\n")
-    
+
     return results
 
 
@@ -453,19 +532,26 @@ def main():
     parser = argparse.ArgumentParser(description='Validate a staging scraper')
     parser.add_argument('source', help='Source name (e.g., brooklyn_museum)')
     parser.add_argument('--run', action='store_true', help='Also run the scraper to test')
-    
+    parser.add_argument('--json', action='store_true', help='Output results as JSON (for automation)')
+
     args = parser.parse_args()
-    
-    # Run validations
+
+    # JSON output mode for automation
+    if args.json:
+        results = run_all_validations_json(args.source)
+        print(json.dumps(results))
+        return 0 if results["all_passed"] else 1
+
+    # Standard human-readable output
     results = run_all_validations(args.source)
-    
+
     # Optionally run the scraper
     if args.run:
         print("="*80)
         print("RUNNING SCRAPER")
         print("="*80)
         success, stdout, stderr = run_staging_scraper(args.source)
-        
+
         if success:
             events_count = parse_events_scraped(stdout)
             print(f"\n✓ Scraper ran successfully")
@@ -475,18 +561,18 @@ def main():
             if stderr:
                 print(f"  Error: {stderr[:500]}")
         print()
-    
+
     # Summary
     print("="*80)
     print("VALIDATION SUMMARY")
     print("="*80)
-    
+
     all_passed = all(results.values())
-    
+
     for test_name, passed in results.items():
         status = "✓" if passed else "✗"
         print(f"{status} {test_name}")
-    
+
     print()
     if all_passed:
         print("✓ ALL VALIDATIONS PASSED")

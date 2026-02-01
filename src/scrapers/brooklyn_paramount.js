@@ -66,13 +66,14 @@ export async function scrapeBrooklynParamount() {
     
     // Schema for extracting multiple events from calendar view
     // Hardcode eventTime to 7:00 PM and eventLocation to Brooklyn Paramount
+    // Use lenient URL validation - accept any string, we'll normalize later
     const calendarEventSchema = z.object({
       events: z.array(z.object({
         eventName: z.string(),
         eventDate: z.string(),
         eventTime: z.string().default("7:00 PM"),
         eventDescription: z.string().default(""),
-        eventUrl: z.string().url(),
+        eventUrl: z.string().default(""),  // Lenient - accept any string
         eventLocation: z.string().default("Brooklyn Paramount")
       }))
     });
@@ -106,13 +107,29 @@ Extract from the calendar grid where events are displayed. Return all visible ev
     }
     
     console.log(`\nSuccessfully extracted ${allEvents.length} total events across ${monthsToScrape} months`);
-    
-    // Backup: Add hardcoded venue name and time to all events
-    const eventsWithDefaults = allEvents.map(event => ({
-      ...event,
-      eventLocation: "Brooklyn Paramount",
-      eventTime: "7:00 PM"
-    }));
+
+    // Backup: Add hardcoded venue name and time to all events, and normalize URLs
+    const eventsWithDefaults = allEvents.map(event => {
+      // Normalize URL - convert relative to absolute, use fallback if empty
+      let eventUrl = event.eventUrl || "";
+      if (!eventUrl || eventUrl.trim() === "") {
+        // No URL extracted - use calendar page as fallback
+        eventUrl = "https://www.brooklynparamount.com/shows";
+      } else if (!eventUrl.startsWith('http://') && !eventUrl.startsWith('https://')) {
+        if (eventUrl.startsWith('/')) {
+          eventUrl = `https://www.brooklynparamount.com${eventUrl}`;
+        } else {
+          eventUrl = `https://www.brooklynparamount.com/${eventUrl}`;
+        }
+      }
+
+      return {
+        ...event,
+        eventUrl: eventUrl,
+        eventLocation: "Brooklyn Paramount",
+        eventTime: "7:00 PM"
+      };
+    });
 
     // Log scraping results using shared utility function
     logScrapingResults(eventsWithDefaults, 'Brooklyn Paramount');

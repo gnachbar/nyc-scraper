@@ -88,13 +88,27 @@ export async function scrapeMSGCalendar() {
       { sourceName: 'msg_calendar' }
     );
 
-    // Backup: Add hardcoded venue name to all events
+    // Backup: Add hardcoded venue name to all events and normalize URLs
     // This ensures eventLocation is set even if schema default fails
-    // This is scraper-specific logic, not shared utility
-    const eventsWithLocation = result.events.map(event => ({
-      ...event,
-      eventLocation: "Madison Square Garden"
-    }));
+    const eventsWithLocation = result.events.map(event => {
+      // Normalize URL - convert relative to absolute or use default
+      let eventUrl = event.eventUrl || "";
+      if (!eventUrl || eventUrl.trim() === "") {
+        eventUrl = "https://www.msg.com/calendar";
+      } else if (!eventUrl.startsWith('http://') && !eventUrl.startsWith('https://')) {
+        if (eventUrl.startsWith('/')) {
+          eventUrl = `https://www.msg.com${eventUrl}`;
+        } else {
+          eventUrl = `https://www.msg.com/${eventUrl}`;
+        }
+      }
+
+      return {
+        ...event,
+        eventUrl: eventUrl,
+        eventLocation: "Madison Square Garden"
+      };
+    });
 
     // Log scraping results using shared utility function
     // This logs total events, events with/without times, and sample events

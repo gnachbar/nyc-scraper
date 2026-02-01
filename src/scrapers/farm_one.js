@@ -23,16 +23,31 @@ export async function scrapeFarmOne() {
     // Step 2: Extract all visible events from UPCOMING section only
     const result = await extractEventsFromPage(
       page,
-      "Extract all events from the UPCOMING section only. Do not extract events from the PAST EVENTS section. For each event, get the event name, date, time (if available), description (if available), set eventLocation to 'Farm.One' for all events, and the URL to the event details page. Look for the 'More info' or 'BOOK' links to get the event page URL. If description is not visible, return an empty string for eventDescription.",
+      "Extract all events from the UPCOMING section only. Do not extract events from the PAST EVENTS section. For each event, get the event name (eventName), date (eventDate), time (eventTime, if available otherwise empty string), description (eventDescription, if available otherwise empty string), set eventLocation to 'Farm.One' for all events. IMPORTANT: For eventUrl, look for any link/href on the event card - this could be a 'More info' button, 'BOOK' button, or the event title itself. Extract the full URL from the href attribute. If no URL is found, use the base page URL 'https://www.farm.one/farm-one-events'.",
       StandardEventSchema,
       { sourceName: 'farm_one' }
     );
 
-    // Add hardcoded venue name to all events (backup in case schema default fails)
-    const eventsWithLocation = result.events.map(event => ({
-      ...event,
-      eventLocation: "Farm.One"
-    }));
+    // Add hardcoded venue name to all events and normalize URLs
+    const eventsWithLocation = result.events.map(event => {
+      // Normalize URL - convert relative to absolute or use default
+      let eventUrl = event.eventUrl || "";
+      if (!eventUrl || eventUrl.trim() === "") {
+        eventUrl = "https://www.farm.one/farm-one-events";
+      } else if (!eventUrl.startsWith('http://') && !eventUrl.startsWith('https://')) {
+        if (eventUrl.startsWith('/')) {
+          eventUrl = `https://www.farm.one${eventUrl}`;
+        } else {
+          eventUrl = `https://www.farm.one/${eventUrl}`;
+        }
+      }
+
+      return {
+        ...event,
+        eventUrl: eventUrl,
+        eventLocation: "Farm.One"
+      };
+    });
 
     // Log results
     logScrapingResults(eventsWithLocation, 'Farm.One');

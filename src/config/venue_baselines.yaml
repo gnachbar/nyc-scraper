@@ -1,0 +1,181 @@
+# Venue Baselines - Expected behavior for each scraper
+# Used by validation framework to detect anomalies
+# Generated from historical data, manually refined
+#
+# typical_horizon_months: How far ahead this venue typically posts events
+# typical_event_count_min/max: Expected range of events per scrape
+# has_pagination: Whether the site has "Load More" or pagination
+# posts_recurring: Whether venue has weekly recurring events (expands count)
+# notes: Any special considerations
+
+venues:
+  bam:
+    typical_horizon_months: 5
+    typical_event_count_min: 200
+    typical_event_count_max: 350
+    has_pagination: true
+    posts_recurring: false
+    notes: "Large venue with multiple performance spaces"
+
+  barclays_center:
+    typical_horizon_months: 8
+    typical_event_count_min: 30
+    typical_event_count_max: 60
+    has_pagination: true
+    posts_recurring: false
+    notes: "Major arena, events book far ahead"
+
+  bell_house:
+    typical_horizon_months: 2
+    typical_event_count_min: 50
+    typical_event_count_max: 90
+    has_pagination: true
+    posts_recurring: false
+    notes: "Popular music venue"
+
+  bric_house:
+    typical_horizon_months: 3
+    typical_event_count_min: 15
+    typical_event_count_max: 80
+    has_pagination: true
+    posts_recurring: false
+    notes: "Arts center with classes and events"
+
+  brooklyn_bowl:
+    typical_horizon_months: 8
+    typical_event_count_min: 50
+    typical_event_count_max: 100
+    has_pagination: true
+    posts_recurring: false
+    notes: "Music venue + bowling"
+
+  brooklyn_library:
+    typical_horizon_months: 2
+    typical_event_count_min: 20
+    typical_event_count_max: 60
+    has_pagination: true
+    posts_recurring: false
+    times_available: false  # Times not shown on listing page
+    notes: "Library events, shorter horizon - times not on listing page"
+
+  brooklyn_museum:
+    typical_horizon_months: 3
+    typical_event_count_min: 30
+    typical_event_count_max: 80
+    has_pagination: true
+    posts_recurring: false
+    notes: "Museum events and exhibitions"
+
+  brooklyn_paramount:
+    typical_horizon_months: 6
+    typical_event_count_min: 40
+    typical_event_count_max: 100
+    has_pagination: true
+    posts_recurring: false
+    notes: "Historic theater, concerts"
+
+  concerts_on_the_slope:
+    typical_horizon_months: 3
+    typical_event_count_min: 3
+    typical_event_count_max: 30
+    has_pagination: false
+    posts_recurring: false
+    notes: "Small community concert series"
+
+  crown_hill_theatre:
+    typical_horizon_months: 3
+    typical_event_count_min: 5
+    typical_event_count_max: 35
+    has_pagination: true
+    posts_recurring: false
+    times_available: false  # Times not shown on listing page, ticketing site protected
+    notes: "Small theater venue - times not extractable from listing page"
+
+  farm_one:
+    typical_horizon_months: 24
+    typical_event_count_min: 100
+    typical_event_count_max: 300
+    has_pagination: true
+    posts_recurring: true
+    notes: "Recurring workshops, posts very far ahead"
+
+  kings_theatre:
+    typical_horizon_months: 6
+    typical_event_count_min: 25
+    typical_event_count_max: 70
+    has_pagination: true
+    posts_recurring: false
+    notes: "Large historic theater"
+
+  lepistol:
+    typical_horizon_months: 6
+    typical_event_count_min: 150
+    typical_event_count_max: 220
+    has_pagination: false
+    posts_recurring: true
+    notes: "Weekly recurring events expanded to 6 months"
+
+  littlefield:
+    typical_horizon_months: 2
+    typical_event_count_min: 40
+    typical_event_count_max: 80
+    has_pagination: true
+    posts_recurring: false
+    notes: "Music and comedy venue"
+
+  msg_calendar:
+    typical_horizon_months: 10
+    typical_event_count_min: 100
+    typical_event_count_max: 180
+    has_pagination: true
+    posts_recurring: false
+    notes: "Madison Square Garden and related venues"
+
+  prospect_park:
+    typical_horizon_months: 6
+    typical_event_count_min: 80
+    typical_event_count_max: 150
+    has_pagination: true
+    posts_recurring: false
+    notes: "Park events, seasonal"
+
+  public_records:
+    typical_horizon_months: 5
+    typical_event_count_min: 40
+    typical_event_count_max: 90
+    has_pagination: true
+    posts_recurring: false
+    notes: "Music venue and bar"
+
+  public_theater:
+    typical_horizon_months: 4
+    typical_event_count_min: 100
+    typical_event_count_max: 250
+    has_pagination: true
+    posts_recurring: false
+    notes: "Multiple theater spaces"
+
+  roulette:
+    typical_horizon_months: 4
+    typical_event_count_min: 20
+    typical_event_count_max: 55
+    has_pagination: true
+    posts_recurring: false
+    notes: "Experimental music venue"
+
+  shapeshifter_plus:
+    typical_horizon_months: 5
+    typical_event_count_min: 70
+    typical_event_count_max: 150
+    has_pagination: true
+    posts_recurring: false
+    notes: "Jazz and experimental venue"
+
+  soapbox_gallery:
+    typical_horizon_months: 2
+    typical_event_count_min: 1
+    typical_event_count_max: 30
+    has_pagination: false
+    posts_recurring: false
+    times_available: false  # Times not consistently shown on listing page
+    notes: "Small gallery, few events, variable event counts"

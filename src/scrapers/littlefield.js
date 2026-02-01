@@ -85,9 +85,11 @@ export async function scrapeLittlefield() {
     console.log(`Completed ${scrollAttempts} scroll attempts`);
     
     // Step 3: Extract all visible events
+    // Get current year dynamically for the extraction instruction
+    const currentYear = new Date().getFullYear();
     const result = await extractEventsFromPage(
       page,
-      "Extract all visible events from the Littlefield all-shows page. For each event, get the event name (as eventName), date (as eventDate - MUST include full year like 'Wednesday, October 29, 2025' - if you see 'WED OCT 29' you need to convert it to 'Wednesday, October 29, 2025' by adding the current year 2025), time (as eventTime - extract just the time like '8:00 PM' from patterns like 'SHOW: 8:00 PM' or 'Doors: 7:00 pm | Show: 8:00 pm'), description (as eventDescription, if available), set eventLocation to 'Littlefield' for all events, and extract the complete URL (as eventUrl) from the href attribute of the 'GET TICKETS' button or link. Look for the href attribute on the link/button element and extract the full URL. The URL format should be like 'https://littlefieldnyc.com/event/?wfea_eb_id=...' or similar full URLs. If description is not visible, return an empty string for eventDescription.",
+      `Extract all visible events from the Littlefield all-shows page. For each event, get the event name (as eventName), date (as eventDate - MUST include full year like 'Wednesday, February 6, ${currentYear}' - if you see 'FEB 6' or 'WED FEB 6' without a year, add the year ${currentYear}), time (as eventTime - extract just the time like '8:00 PM' from patterns like 'SHOW: 8:00 PM' or 'Doors: 7:00 pm | Show: 8:00 pm'), description (as eventDescription, if available), set eventLocation to 'Littlefield' for all events, and extract the complete URL (as eventUrl) from the href attribute of the 'GET TICKETS' button or link. Look for the href attribute on the link/button element and extract the full URL. The URL format should be like 'https://littlefieldnyc.com/event/?wfea_eb_id=...' or similar full URLs. If description is not visible, return an empty string for eventDescription.`,
       StandardEventSchema,
       { sourceName: 'littlefield' }
     );

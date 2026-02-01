@@ -1,6 +1,8 @@
 import { Stagehand } from "@browserbasehq/stagehand";
 import { z } from "zod";
 import { exec } from "child_process";
+import fs from "fs";
+import path from "path";
 
 /**
  * Initialize Stagehand with Browserbase
@@ -36,9 +38,9 @@ export async function initStagehand(options = {}) {
  * @param {string} sessionId - Browserbase session ID
  */
 export function openBrowserbaseSession(sessionId) {
-  const openCommand = process.platform === 'darwin' ? 'open' : 
+  const openCommand = process.platform === 'darwin' ? 'open' :
                      process.platform === 'win32' ? 'start' : 'xdg-open';
-  
+
   exec(`${openCommand} https://browserbase.com/sessions/${sessionId}`, (error) => {
     if (error) {
       console.log('Could not automatically open browser. Please manually open the URL above.');
@@ -49,6 +51,57 @@ export function openBrowserbaseSession(sessionId) {
 }
 
 /**
+ * Capture a full-page screenshot for visual verification
+ * Uses CDP (Chrome DevTools Protocol) for full-page capture via Browserbase
+ *
+ * @param {Object} page - Stagehand/Playwright page object
+ * @param {string} sourceName - Name of the source/venue for filename
+ * @param {Object} options - Configuration options
+ * @param {string} [options.screenshotDir='screenshots'] - Directory to save screenshots
+ * @returns {Promise<string>} Path to the saved screenshot file
+ */
+export async function capturePageScreenshot(page, sourceName, options = {}) {
+  const { screenshotDir = 'screenshots' } = options;
+
+  // Create timestamp for unique filename
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const filename = `${sourceName}_${timestamp}.png`;
+  const filepath = path.join(process.cwd(), screenshotDir, filename);
+
+  // Ensure screenshots directory exists
+  const dir = path.join(process.cwd(), screenshotDir);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  try {
+    // Use CDP for full-page screenshot (Browserbase recommended approach)
+    const client = await page.context().newCDPSession(page);
+    const { data } = await client.send('Page.captureScreenshot', {
+      format: 'png',
+      captureBeyondViewport: true,
+      fromSurface: true
+    });
+
+    // Save to file
+    const buffer = Buffer.from(data, 'base64');
+    fs.writeFileSync(filepath, buffer);
+
+    console.log(`Screenshot saved: ${filepath}`);
+    return filepath;
+  } catch (cdpError) {
+    // Fallback to standard Playwright screenshot if CDP fails
+    console.log('CDP screenshot failed, using Playwright fallback:', cdpError.message);
+    await page.screenshot({
+      path: filepath,
+      fullPage: true
+    });
+    console.log(`Screenshot saved (fallback): ${filepath}`);
+    return filepath;
+  }
+}
+
+/**
  * Create standardized event schema for all scrapers
  * @param {Object} options - Schema configuration options
  * @param {string} [options.eventLocationDefault] - Default value for eventLocation field
@@ -56,13 +109,15 @@ export function openBrowserbaseSession(sessionId) {
  */
 export function createStandardSchema(options = {}) {
   const { eventLocationDefault } = options;
-  
+
   const eventSchema = {
     eventName: z.string(),
     eventDate: z.string(),
     eventTime: z.string().default(""), // Required field, empty string if not found
     eventDescription: z.string().nullable().transform(v => v ?? "").default(""), // Event description, handles null/undefined/missing gracefully - transforms null to empty string
-    eventUrl: z.string().url()
+    // Use lenient URL validation - accept any string, scrapers will normalize
+    // Strict .url() validation fails when AI returns relative URLs or imperfect formats
+    eventUrl: z.string()
   };
   
   // Add eventLocation with optional default value

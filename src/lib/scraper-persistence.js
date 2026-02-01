@@ -2,6 +2,15 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
+// Helper to get Python command - prefer venv if available
+function getPythonCommand() {
+  const venvPython = path.join(process.cwd(), 'venv', 'bin', 'python');
+  if (fs.existsSync(venvPython)) {
+    return venvPython;
+  }
+  return 'python3';
+}
+
 /**
  * Log scraping results with time validation
  * @param {Array} events - Array of extracted events
@@ -55,14 +64,15 @@ export async function saveEventsToDatabase(events, sourceName, options = {}) {
   fs.writeFileSync(tempFile, JSON.stringify({ events }, null, 2));
   
   try {
+    const pythonCmd = getPythonCommand();
     // Import to database using existing import script
-    execSync(`python3 src/import_scraped_data.py --source ${sourceName} --file ${tempFile}`, { stdio: 'inherit' });
+    execSync(`${pythonCmd} src/import_scraped_data.py --source ${sourceName} --file ${tempFile}`, { stdio: 'inherit' });
     console.log(`Successfully imported ${events.length} events to database`);
-    
+
     // Run scraper test to compare with previous run
     console.log("Running scraper test...");
     try {
-      execSync(`python3 src/test_scrapers.py --source ${sourceName}`, { stdio: 'inherit' });
+      execSync(`${pythonCmd} src/test_scrapers.py --source ${sourceName}`, { stdio: 'inherit' });
       console.log("Scraper test completed successfully");
     } catch (testError) {
       console.warn("Scraper test failed (non-critical):", testError.message);
